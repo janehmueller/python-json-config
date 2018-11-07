@@ -43,6 +43,10 @@ class ConfigNodeTest(TestCase):
         node.update("key1", 2)
         self.assertEqual(node.key1, 2)
 
+        node.update("key1", {"newkey": 1})
+        self.assertIsInstance(node.key1, ConfigNode)
+        self.assertEqual(node.key1.newkey, 1)
+
         with self.assertRaises(KeyError): node.key3
         node.update("key3", "asd")
         self.assertEqual(node.key3, "asd")
@@ -50,3 +54,8 @@ class ConfigNodeTest(TestCase):
         self.assertIsInstance(node.key2.key4, ConfigNode)
         node.update("key2.key4", 1337)
         self.assertEqual(node.key2.key4, 1337)
+
+    def test_string(self):
+        node = ConfigNode({1: 2, 3: 4})
+        node_str = "ConfigNode(path=[], values={1: 2, 3: 4})"
+        self.assertEqual(str(node), node_str)
