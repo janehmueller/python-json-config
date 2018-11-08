@@ -23,7 +23,9 @@ class ConfigBuilder(object):
         return self
 
     def parse_config(self, file_name: str) -> ConfigNode:
-        self.__config = Config(json.load(open(file_name, "r")))
+        with open(file_name, "r") as json_file:
+            config_dict = json.load(json_file)
+        self.__config = Config(config_dict)
         self.__validate_types()
         self.__validate_field_values()
         self.__transform_field_values()
@@ -32,7 +34,6 @@ class ConfigBuilder(object):
 
     def __validate_types(self):
         for field_name, field_type in self.__validation_types.items():
-            print(field_name)
             value = self.__config.get(field_name)
             assert isinstance(value, field_type), f'Config field "{field_name}" with value "{value}" is not of type {field_type}'
 
