@@ -3,8 +3,10 @@
 
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
 
 # macOS
 .DS_Store
+
+# coverage
+.coverage
+htmlcov
