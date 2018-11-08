@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.com/janehmueller/python-config.svg?token=tGKCTy4zTZfGNfjpEgEX&branch=master)](https://travis-ci.com/janehmueller/python-config)
+![License](https://img.shields.io/pypi/l/python-json-config.svg)
+[![Version](https://img.shields.io/pypi/v/python-json-config.svg)](https://pypi.python.org/pypi/python-json-config/)
 
 # Overview
 This library allows to load json configs and access the values like members (i.e., `config.server.port`
