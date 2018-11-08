@@ -14,7 +14,7 @@ from setuptools import find_packages, setup, Command
 # Package meta-data.
 NAME = 'python_json_config'
 DESCRIPTION = 'This library allows to load json configs and access the values like members (i.e., via dots), validate' \
-              'config field types and values and transform config fields.'
+              ' config field types and values and transform config fields.'
 URL = 'https://github.com/janehmueller/python-config'
 EMAIL = 'jan@ehmueller.de'
 AUTHOR = 'Jan Ehmueller'

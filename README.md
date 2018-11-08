@@ -6,7 +6,7 @@ instead of `config['server']['port']`), validate the data types of fields and tr
 
 # Installing
 ```
-pip install git+https://github.com/janehmueller/python-json-config
+pip install python-json-config
 ```
 # Usage
 ```
