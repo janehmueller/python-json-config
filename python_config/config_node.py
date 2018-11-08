@@ -1,5 +1,7 @@
 from typing import List, Union
 
+from .utils import normalize_path
+
 
 class ConfigNode(object):
     def __init__(self, config_dict: dict, path: List[str] = None):
@@ -16,16 +18,21 @@ class ConfigNode(object):
     def __getattr__(self, item):
         return self.get(item)
 
-    def get(self, key):
+    def get(self, path: Union[str, List[str]]):
+        path = normalize_path(path)
+        key = path[0]
         try:
-            return self.__node_dict[key]
-        except KeyError:
-            raise KeyError(f'No value exists for key "{".".join(self.__path)}.{key}""')
-
+            value = self.__node_dict[key]
+            if len(path) == 1:
+                return value
+            else:
+                return value.get(path[1:])
+        except KeyError as exception:
+            print_path = ".".join(self.__path) + ("." if len(self.__path) > 0 else "")
+            raise KeyError(f'No value exists for key "{print_path}{key}"') from exception
 
     def update(self, path: Union[str, List[str]], value):
-        if isinstance(path, str):
-            path = path.split(".")
+        path = normalize_path(path)
         key = path[0]
         if len(path) == 1:
             if isinstance(value, dict):
@@ -39,3 +46,8 @@ class ConfigNode(object):
         return f"ConfigNode(path={self.__path}, values={self.__node_dict})"
 
     __repr__ = __str__
+
+
+class Config(ConfigNode):
+    def __init__(self, config_dict: dict):
+        super(Config, self).__init__(config_dict, [])

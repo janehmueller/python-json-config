@@ -1,7 +1,6 @@
 import json
 
-from src.config import Config
-from src.config_node import ConfigNode
+from .config_node import ConfigNode, Config
 
 
 class ConfigBuilder(object):
@@ -33,16 +32,17 @@ class ConfigBuilder(object):
 
     def __validate_types(self):
         for field_name, field_type in self.__validation_types.items():
-            value = self.__config.traverse_path(field_name)
+            print(field_name)
+            value = self.__config.get(field_name)
             assert isinstance(value, field_type), f'Config field "{field_name}" with value "{value}" is not of type {field_type}'
 
     def __validate_field_values(self):
         for field_name, validation_function in self.__validation_functions.items():
-            value = self.__config.traverse_path(field_name)
+            value = self.__config.get(field_name)
             assert validation_function(value), f'Config field "{field_name}" contains invalid value "{value}"'
 
     def __transform_field_values(self):
         for field_name, transformation_function in self.__transformation_functions.items():
-            value = self.__config.traverse_path(field_name)
+            value = self.__config.get(field_name)
             new_value = transformation_function(value)
-            self.__config.update_path(field_name, new_value)
+            self.__config.update(field_name, new_value)
