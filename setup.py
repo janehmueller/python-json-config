@@ -18,7 +18,7 @@ DESCRIPTION = 'This library allows to load json configs and access the values li
 URL = 'https://github.com/janehmueller/python-config'
 EMAIL = 'jan@ehmueller.de'
 AUTHOR = 'Jan Ehmueller'
-REQUIRES_PYTHON = '>=3.6.0'
+REQUIRES_PYTHON = '>=3.6'
 VERSION = None
 
 # What packages are required for this module to be executed?
