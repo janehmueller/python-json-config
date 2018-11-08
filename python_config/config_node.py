@@ -28,7 +28,7 @@ class ConfigNode(object):
             else:
                 return value.get(path[1:])
         except KeyError as exception:
-            print_path = ".".join(self.__path) + ("." if len(self.__path) > 0 else "")
+            print_path = '.'.join(self.__path) + ('.' if len(self.__path) > 0 else '')
             raise KeyError(f'No value exists for key "{print_path}{key}"') from exception
 
     def update(self, path: Union[str, List[str]], value):
@@ -43,7 +43,7 @@ class ConfigNode(object):
             self.get(key).update(path[1:], value)
 
     def __str__(self):
-        return f"ConfigNode(path={self.__path}, values={self.__node_dict})"
+        return f'ConfigNode(path={self.__path}, values={self.__node_dict})'
 
     __repr__ = __str__
 
