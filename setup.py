@@ -127,7 +127,7 @@ setup(
         'Intended Audience :: Developers'
     ],
     # $ setup.py publish support.
-    # cmdclass={
-    #     'upload': UploadCommand,
-    # },
+    cmdclass={
+        'upload': UploadCommand,
+    },
 )
