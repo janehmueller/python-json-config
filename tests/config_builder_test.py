@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from python_config import ConfigBuilder
+from python_json_config import ConfigBuilder
 
 
 class ConfigBuilderTest(TestCase):

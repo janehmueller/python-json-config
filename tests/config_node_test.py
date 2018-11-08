@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from python_config.config_node import ConfigNode
+from python_json_config.config_node import ConfigNode
 
 
 class ConfigNodeTest(TestCase):
