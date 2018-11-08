@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from src.config_node import ConfigNode
+from python_config.config_node import ConfigNode
 
 
 class ConfigNodeTest(TestCase):
@@ -36,6 +36,8 @@ class ConfigNodeTest(TestCase):
 
         self.assertEqual(node.get("key1"), 1)
         with self.assertRaises(KeyError): node.get("nokey")
+
+        self.assertEqual(node.get("key2.key3"), 3)
 
     def test_update(self):
         node = ConfigNode(self.config_dict)

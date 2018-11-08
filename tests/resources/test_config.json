@@ -2,27 +2,9 @@
   "server": {
     "debug_mode": false,
     "host": "127.0.0.1",
-    "logging": {
-      "log_file": "path_to_logfile"
-    },
     "port": 5000
   },
-  "document_store": {
-    "database": "database_name",
-    "host": "localhost",
-    "port": "27017",
-    "type": "mongo"
-  },
   "cache": {
-    "ttl": 180,
-    "type": "simple"
-  },
-  "celery": {
-    "broker_url": "amqp://localhost"
-  },
-  "jwt": {
-    "access_token_expires": "0:0:00:15:00",
-    "refresh_token_expires": "0:0:01:00:00",
-    "secret_key": "this-is-a-secret-string"
+    "ttl": 180
   }
 }
