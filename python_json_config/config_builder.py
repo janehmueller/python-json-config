@@ -22,7 +22,7 @@ class ConfigBuilder(object):
         self.__transformation_functions[field_name] = transformation_function
         return self
 
-    def parse_config(self, file_name: str) -> ConfigNode:
+    def parse_config(self, file_name: str) -> Config:
         with open(file_name, "r") as json_file:
             config_dict = json.load(json_file)
         self.__config = Config(config_dict)
