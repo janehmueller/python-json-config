@@ -47,6 +47,15 @@ class ConfigNode(object):
 
     __repr__ = __str__
 
+    """
+    These two methods are needed to enable pickling since this class overwrites __getattr__.
+    """
+    def __getstate__(self):
+        return vars(self)
+
+    def __setstate__(self, state):
+        vars(self).update(state)
+
 
 class Config(ConfigNode):
     def __init__(self, config_dict: dict):
