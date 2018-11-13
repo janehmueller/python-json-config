@@ -1,3 +1,4 @@
+import pickle
 from unittest import TestCase
 
 from python_json_config.config_node import ConfigNode
@@ -61,3 +62,10 @@ class ConfigNodeTest(TestCase):
         node = ConfigNode({1: 2, 3: 4})
         node_str = 'ConfigNode(path=[], values={1: 2, 3: 4})'
         self.assertEqual(str(node), node_str)
+
+    def test_pickle(self):
+        config = ConfigNode(self.config_dict)
+        pickle_conf = pickle.loads(pickle.dumps(config))
+        self.assertEqual(pickle_conf.key1, 1)
+        self.assertEqual(pickle_conf.key2.key3, 3)
+        self.assertEqual(pickle_conf.key2.key4.key5, 5)
