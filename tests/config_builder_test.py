@@ -1,7 +1,6 @@
 from unittest import TestCase
 
 from python_json_config import ConfigBuilder
-from python_json_config.validators import is_unreserved_port
 
 
 class ConfigBuilderTest(TestCase):
@@ -32,10 +31,10 @@ class ConfigBuilderTest(TestCase):
         builder.validate_field_value('key1', lambda x: x < 4)
         builder.validate_field_value('key1.key2', lambda x: len(x) == 3)
         value_validation_dict = builder._ConfigBuilder__validation_functions
-        self.assertTrue(value_validation_dict['key1'](1))
-        self.assertFalse(value_validation_dict['key1'](4))
-        self.assertTrue(value_validation_dict['key1.key2']([1, 2, 3]))
-        self.assertFalse(value_validation_dict['key1.key2'](['a', 'b']))
+        self.assertTrue(value_validation_dict['key1'][0](1))
+        self.assertFalse(value_validation_dict['key1'][0](4))
+        self.assertTrue(value_validation_dict['key1.key2'][0]([1, 2, 3]))
+        self.assertFalse(value_validation_dict['key1.key2'][0](['a', 'b']))
 
     def test_value_transformation_builder(self):
         builder = ConfigBuilder()
@@ -59,9 +58,15 @@ class ConfigBuilderTest(TestCase):
     def test_value_validation(self):
         builder = ConfigBuilder()
         builder.validate_field_value('server.debug_mode', lambda x: not x)
-        builder.validate_field_value('server.port', lambda x: x < 10000)
+        builder.validate_field_value('server.port', [lambda x: x < 10000, lambda x: x > 1023])
         builder.parse_config(self.path)
-        builder.validate_field_value('cache.ttl', lambda x: x > 200)
+
+        builder.validate_field_value('server.port', lambda x: x > 6000)
+        with self.assertRaises(AssertionError):
+            builder.parse_config(self.path)
+
+        builder = ConfigBuilder()
+        builder = builder.validate_field_value('cache.ttl', lambda x: x > 200)
         with self.assertRaises(AssertionError):
             builder.parse_config(self.path)
 

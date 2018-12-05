@@ -1,12 +1,13 @@
 import json
+from typing import Dict
 
-from .config_node import ConfigNode, Config
+from .config_node import Config
 
 
 class ConfigBuilder(object):
     def __init__(self):
-        self.__validation_types = {}
-        self.__validation_functions = {}
+        self.__validation_types: Dict[str, type] = {}
+        self.__validation_functions: Dict[str, list] = {}
         self.__transformation_functions = {}
         self.__config: Config = None
 
@@ -15,7 +16,14 @@ class ConfigBuilder(object):
         return self
 
     def validate_field_value(self, field_name: str, validation_function):
-        self.__validation_functions[field_name] = validation_function
+        if field_name not in self.__validation_functions:
+            self.__validation_functions[field_name] = []
+
+        if isinstance(validation_function, list):
+            self.__validation_functions[field_name] += validation_function
+        else:
+            self.__validation_functions[field_name].append(validation_function)
+
         return self
 
     def transform_field_value(self, field_name: str, transformation_function):
@@ -38,16 +46,17 @@ class ConfigBuilder(object):
             assert isinstance(value, field_type), f'Config field "{field_name}" with value "{value}" is not of type {field_type}'
 
     def __validate_field_values(self):
-        for field_name, validation_function in self.__validation_functions.items():
+        for field_name, validation_functions in self.__validation_functions.items():
             value = self.__config.get(field_name)
-            validation_result = validation_function(value)
-            error_message = f'Error validating field "{field_name}" with value "{value}"'
+            for validation_function in validation_functions:
+                validation_result = validation_function(value)
+                error_message = f'Error validating field "{field_name}" with value "{value}"'
 
-            if isinstance(validation_result, tuple):
-                result, validation_error = validation_result
-                assert result, f"{error_message}: {validation_error}"
-            else:
-                assert validation_result, error_message
+                if isinstance(validation_result, tuple):
+                    result, validation_error = validation_result
+                    assert result, f"{error_message}: {validation_error}"
+                else:
+                    assert validation_result, error_message
 
     def __transform_field_values(self):
         for field_name, transformation_function in self.__transformation_functions.items():
