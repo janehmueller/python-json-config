@@ -33,10 +33,10 @@ class ConfigNodeTest(TestCase):
     def test_get(self):
         node = ConfigNode(self.config_dict)
         self.assertEqual(node.key1, 1)
-        with self.assertRaises(KeyError): node.nokey
+        with self.assertRaises(AttributeError): node.nokey
 
         self.assertEqual(node.get('key1'), 1)
-        with self.assertRaises(KeyError): node.get('nokey')
+        with self.assertRaises(AttributeError): node.get('nokey')
 
         self.assertEqual(node.get('key2.key3'), 3)
 
@@ -50,7 +50,7 @@ class ConfigNodeTest(TestCase):
         self.assertIsInstance(node.key1, ConfigNode)
         self.assertEqual(node.key1.newkey, 1)
 
-        with self.assertRaises(KeyError): node.key3
+        with self.assertRaises(AttributeError): node.key3
         node.update('key3', 'asd')
         self.assertEqual(node.key3, 'asd')
 
