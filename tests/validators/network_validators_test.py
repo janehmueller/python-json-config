@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from python_json_config.validators import is_timedelta
+from python_json_config.validators import is_timedelta, is_ipv4_address
 
 
 class NetworkValidatorsTest(TestCase):
@@ -14,3 +14,13 @@ class NetworkValidatorsTest(TestCase):
 
         for timedelta in invalid_timedeltas:
             self.assertFalse(is_timedelta(timedelta))
+
+    def test_is_ipv4_address(self):
+        valid_ips = ["127.0.0.1", "8.8.8.8", "127.1", "8.526344"]
+        invalid_ips = ["327.0.0.1", "8.8.8.8.8", "127.-1", "256.526344"]
+
+        for address in valid_ips:
+            self.assertTrue(is_ipv4_address(address))
+
+        for address in invalid_ips:
+            self.assertFalse(is_ipv4_address(address))
