@@ -14,9 +14,6 @@ def is_timedelta(value: str) -> bool:
     :param value: The timedelta as string.
     :return: True if the value is a valid timedelta specification otherwise False.
     """
-    if not isinstance(value, str):
-        return False
-
     split_values = value.split(':')
     if len(split_values) != 5:
         return False
@@ -40,3 +37,12 @@ def is_ipv4_address(ip_address: str):
         return True
     except socket.error:
         return False
+
+
+def is_unreserved_port(port: int):
+    """
+    Tests if the given port is an unreserved port.
+    :param port: The port that is tested.
+    :return: True if the port is not reserved otherwise False.
+    """
+    return port > 1023

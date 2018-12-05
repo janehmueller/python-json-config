@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from python_json_config.validators import is_timedelta, is_ipv4_address
+from python_json_config.validators import is_timedelta, is_ipv4_address, is_unreserved_port
 
 
 class NetworkValidatorsTest(TestCase):
@@ -24,3 +24,11 @@ class NetworkValidatorsTest(TestCase):
 
         for address in invalid_ips:
             self.assertFalse(is_ipv4_address(address))
+
+    def test_is_unreserved_port(self):
+        self.assertFalse(is_unreserved_port(1))
+        self.assertFalse(is_unreserved_port(-1))
+        self.assertFalse(is_unreserved_port(22))
+        self.assertFalse(is_unreserved_port(1023))
+        self.assertTrue(is_unreserved_port(1024))
+        self.assertTrue(is_unreserved_port(14302))
