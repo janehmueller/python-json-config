@@ -1,31 +1,6 @@
 import socket
 
 
-def is_timedelta(value: str) -> bool:
-    """
-    Tests if the given value is a valid timedelta specification.
-    The timedelta needs to be specified as a colon separated string, e.g.: "0:0:23:00:00"
-        The format is as follows "WW:DD:HH:MM:SS"
-        W = number of months
-        D = number of days
-        H = number of hours
-        M = number of minutes
-        S = number of seconds
-    :param value: The timedelta as string.
-    :return: True if the value is a valid timedelta specification otherwise False.
-    """
-    split_values = value.split(':')
-    if len(split_values) != 5:
-        return False
-
-    try:
-        [int(element) for element in split_values]
-    except ValueError:
-        return False
-
-    return True
-
-
 def is_ipv4_address(ip_address: str):
     """
     Tests if the given value is a valid IPv4 address
