@@ -33,10 +33,10 @@ class ConfigNodeTest(TestCase):
     def test_get(self):
         node = ConfigNode(self.config_dict)
         self.assertEqual(node.key1, 1)
-        with self.assertRaises(KeyError): node.nokey
+        with self.assertRaises(AttributeError): node.nokey
 
         self.assertEqual(node.get('key1'), 1)
-        with self.assertRaises(KeyError): node.get('nokey')
+        with self.assertRaises(AttributeError): node.get('nokey')
 
         self.assertEqual(node.get('key2.key3'), 3)
 
@@ -50,7 +50,7 @@ class ConfigNodeTest(TestCase):
         self.assertIsInstance(node.key1, ConfigNode)
         self.assertEqual(node.key1.newkey, 1)
 
-        with self.assertRaises(KeyError): node.key3
+        with self.assertRaises(AttributeError): node.key3
         node.update('key3', 'asd')
         self.assertEqual(node.key3, 'asd')
 
@@ -69,3 +69,11 @@ class ConfigNodeTest(TestCase):
         self.assertEqual(pickle_conf.key1, 1)
         self.assertEqual(pickle_conf.key2.key3, 3)
         self.assertEqual(pickle_conf.key2.key4.key5, 5)
+
+    def test_contains(self):
+        config = ConfigNode(self.config_dict)
+        self.assertTrue('key1' in config)
+        self.assertFalse('key1.key2' in config)
+        self.assertTrue('key2.key3' in config)
+        self.assertTrue('key2.key4.key5' in config)
+        self.assertFalse('key2.key4.key6' in config)
