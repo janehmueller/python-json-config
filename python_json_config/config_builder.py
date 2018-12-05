@@ -40,7 +40,14 @@ class ConfigBuilder(object):
     def __validate_field_values(self):
         for field_name, validation_function in self.__validation_functions.items():
             value = self.__config.get(field_name)
-            assert validation_function(value), f'Config field "{field_name}" contains invalid value "{value}"'
+            validation_result = validation_function(value)
+            error_message = f'Error validating field "{field_name}" with value "{value}"'
+
+            if isinstance(validation_result, tuple):
+                result, validation_error = validation_result
+                assert result, f"{error_message}: {validation_error}"
+            else:
+                assert validation_result, error_message
 
     def __transform_field_values(self):
         for field_name, transformation_function in self.__transformation_functions.items():

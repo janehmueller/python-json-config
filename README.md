@@ -30,6 +30,9 @@ builder.validate_field_value('server.ip', is_ipv4_address)
 builder.validate_field_value('server.port', is_unreserved_port)
 builder.validate_field_value('jwt.access_token_expires', is_timedelta)
 
+# you can also return custom error messages in your lambdas
+builder.validate_field_value('server.ip', lambda ip: (ip != "0.0.0.0", "IP is unroutable."))
+
 # parse a timedelta (e.g., Jun 1 2005) into a datetime object
 builder.transform_field_value('important_date', lambda date: datetime.strptime(date, '%b %d %Y'))
 builder.transform_field_value('jwt.access_token_expires', to_timedelta)
@@ -39,7 +42,10 @@ config = builder.parse_config('path/to/config.json')
 
 # access config values
 port = config.server.port
-assert port > 1024
+assert port > 1023
+
+ip = config.server.ip
+assert ip != "0.0.0.0"
 
 important_date = config.important_date
 assert isinstance(important_date, datetime)

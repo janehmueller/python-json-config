@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from python_json_config import ConfigBuilder
+from python_json_config.validators import is_unreserved_port
 
 
 class ConfigBuilderTest(TestCase):
@@ -52,7 +53,8 @@ class ConfigBuilderTest(TestCase):
         builder.validate_field_type('server.port', int)
         builder.parse_config(self.path)
         builder.validate_field_type('server.host', int)
-        with self.assertRaises(AssertionError): builder.parse_config(self.path)
+        with self.assertRaises(AssertionError):
+            builder.parse_config(self.path)
 
     def test_value_validation(self):
         builder = ConfigBuilder()
@@ -60,7 +62,8 @@ class ConfigBuilderTest(TestCase):
         builder.validate_field_value('server.port', lambda x: x < 10000)
         builder.parse_config(self.path)
         builder.validate_field_value('cache.ttl', lambda x: x > 200)
-        with self.assertRaises(AssertionError): builder.parse_config(self.path)
+        with self.assertRaises(AssertionError):
+            builder.parse_config(self.path)
 
     def test_value_transformation(self):
         builder = ConfigBuilder()
@@ -74,4 +77,9 @@ class ConfigBuilderTest(TestCase):
         self.assertTrue(config.server.debug_mode)
         self.assertEqual(config.server.port, 5004)
 
-
+    def test_value_validation_error_messages(self):
+        builder = ConfigBuilder()
+        builder.validate_field_value('server.debug_mode', lambda x: (x, "test error"))
+        with self.assertRaises(AssertionError,
+                               msg='Error validating field "server.debug_mode" with value "False": test error'):
+            builder.parse_config(self.path)

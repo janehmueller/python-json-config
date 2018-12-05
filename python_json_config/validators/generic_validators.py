@@ -1,4 +1,7 @@
-def is_timedelta(value: str) -> bool:
+from typing import Union, Tuple
+
+
+def is_timedelta(value: str) -> Union[bool, Tuple[bool, str]]:
     """
     Tests if the given value is a valid timedelta specification.
     The timedelta needs to be specified as a colon separated string, e.g.: "0:0:23:00:00"
@@ -13,12 +16,12 @@ def is_timedelta(value: str) -> bool:
     """
     split_values = value.split(':')
     if len(split_values) > 5:
-        return False
+        return False, "Timedelta contains more than 5 elements."
 
     try:
         [int(element) for element in split_values]
     except ValueError:
-        return False
+        return False, "Timedelta contains non-integer elements."
 
     return True
 
@@ -29,7 +32,7 @@ def is_valid_choice(options):
     :return: A functions that takes a value and tests if it is within the specified choices. This function returns True
              if the value in the config is in the passed options.
     """
-    def validator(value):
-        return value in options
+    def validator(value) -> Tuple[bool, str]:
+        return value in options, f"Value is not contained in the options {options}"
 
     return validator
