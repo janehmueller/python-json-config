@@ -12,7 +12,7 @@ def is_timedelta(value: str) -> bool:
     :return: True if the value is a valid timedelta specification otherwise False.
     """
     split_values = value.split(':')
-    if len(split_values) != 5:
+    if len(split_values) > 5:
         return False
 
     try:
