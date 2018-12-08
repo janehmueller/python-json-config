@@ -1,4 +1,7 @@
+import json
 from unittest import TestCase
+
+from jsonschema import ValidationError
 
 from python_json_config import ConfigBuilder
 
@@ -7,6 +10,7 @@ class ConfigBuilderTest(TestCase):
 
     def setUp(self):
         self.path = 'tests/resources/test_config.json'
+        self.schema_path = 'tests/resources/test_config.schema.json'
 
     def test_parse(self):
         config = ConfigBuilder()\
@@ -88,3 +92,17 @@ class ConfigBuilderTest(TestCase):
         with self.assertRaises(AssertionError,
                                msg='Error validating field "server.debug_mode" with value "False": test error'):
             builder.parse_config(self.path)
+
+    def test_json_schema_validation(self):
+        builder = ConfigBuilder()
+        builder.validate_with_schema(self.schema_path)
+        builder.parse_config(self.path)
+
+        with open(self.path, "r") as config_file:
+            config = json.load(config_file)
+        del config["cache"]
+        builder.parse_config(config)
+
+        config["server"]["port"] = 1023
+        with self.assertRaises(ValidationError):
+            builder.parse_config(config)
