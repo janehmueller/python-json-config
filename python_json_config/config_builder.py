@@ -1,5 +1,7 @@
 import json
-from typing import Dict
+from typing import Dict, Union
+
+import jsonschema
 
 from .config_node import Config
 
@@ -10,6 +12,7 @@ class ConfigBuilder(object):
         self.__validation_functions: Dict[str, list] = {}
         self.__transformation_functions = {}
         self.__config: Config = None
+        self.__json_schema: dict = None
 
     def validate_field_type(self, field_name: str, field_type: type):
         self.__validation_types[field_name] = field_type
@@ -30,9 +33,22 @@ class ConfigBuilder(object):
         self.__transformation_functions[field_name] = transformation_function
         return self
 
-    def parse_config(self, file_name: str) -> Config:
-        with open(file_name, "r") as json_file:
-            config_dict = json.load(json_file)
+    def validate_with_schema(self, schema: Union[str, dict]):
+        if isinstance(schema, dict):
+            self.__json_schema = schema
+        else:
+            with open(schema, "r") as json_file:
+                self.__json_schema = json.load(json_file)
+
+    def parse_config(self, config: Union[str, dict]) -> Config:
+        if isinstance(config, dict):
+            config_dict = config
+        else:
+            with open(config, "r") as json_file:
+                config_dict = json.load(json_file)
+
+        if self.__json_schema is not None:
+            jsonschema.validate(config_dict, self.__json_schema)
         self.__config = Config(config_dict)
         self.__validate_types()
         self.__validate_field_values()
