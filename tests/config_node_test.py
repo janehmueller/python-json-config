@@ -62,7 +62,7 @@ class ConfigNodeTest(TestCase):
 
     def test_string(self):
         node = ConfigNode({1: 2, 3: 4})
-        node_str = 'ConfigNode(path=[], values={1: 2, 3: 4})'
+        node_str = 'ConfigNode(path=[], values={1: 2, 3: 4}, strict_access=True, required_fields=[], optional_fields=[])'
         self.assertEqual(str(node), node_str)
 
     def test_pickle(self):
@@ -79,3 +79,22 @@ class ConfigNodeTest(TestCase):
         self.assertTrue('key2.key3' in config)
         self.assertTrue('key2.key4.key5' in config)
         self.assertFalse('key2.key4.key6' in config)
+
+    def test_strict_access(self):
+        config = ConfigNode(self.config_dict, strict_access=True, optional_fields=['nokey', ['key2', 'nokey'], 'key2.nokey2'])
+        self.assertIsNone(config.nokey)
+        self.assertIsNone(config.key2.nokey)
+        self.assertIsNone(config.key2.nokey2)
+        with self.assertRaises(AttributeError):
+            config.key2.nokey3
+
+
+        config = ConfigNode(self.config_dict, strict_access=False, required_fields=['nokey', ['key2', 'nokey'], 'key2.nokey2'])
+        self.assertIsNone(config.key2.nokey3)
+        with self.assertRaises(AttributeError):
+            self.assertIsNone(config.nokey)
+        with self.assertRaises(AttributeError):
+            self.assertIsNone(config.key2.nokey)
+        with self.assertRaises(AttributeError):
+            self.assertIsNone(config.key2.nokey2)
+
