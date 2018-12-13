@@ -106,3 +106,39 @@ class ConfigBuilderTest(TestCase):
         config["server"]["port"] = 1023
         with self.assertRaises(ValidationError):
             builder.parse_config(config)
+
+    def test_optional_access(self):
+        builder = ConfigBuilder()
+        builder.set_field_access_optional()
+        builder.add_required_field('server.nokey')
+        builder.add_required_fields(['cache.name', 'test'])
+        config = builder.parse_config(self.path)
+
+        self.assertIsNone(config.nokey)
+        with self.assertRaises(AttributeError):
+            config.test
+        self.assertIsNone(config.server.nokey2)
+        with self.assertRaises(AttributeError):
+            config.server.nokey
+        self.assertIsNone(config.cache.name2)
+        with self.assertRaises(AttributeError):
+            config.cache.name
+
+    def test_required_access(self):
+        builder = ConfigBuilder()
+        builder.set_field_access_required()
+        builder.add_optional_field('server.nokey')
+        builder.add_optional_fields(['cache.name', 'test'])
+        config = builder.parse_config(self.path)
+
+        self.assertIsNone(config.test)
+        with self.assertRaises(AttributeError):
+            config.nokey
+        self.assertIsNone(config.server.nokey)
+        with self.assertRaises(AttributeError):
+            config.server.nokey2
+        self.assertIsNone(config.cache.name)
+        with self.assertRaises(AttributeError):
+            config.cache.name2
+
+
