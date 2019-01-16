@@ -142,3 +142,10 @@ class ConfigBuilderTest(TestCase):
             config.cache.name2
 
 
+    def test_optional_validation(self):
+        builder = ConfigBuilder()
+        builder.set_field_access_optional()
+        builder.validate_field_type('cache.name', str)
+        builder.validate_field_value('cache.host', 'localhost')
+        builder.transform_field_value('cache.host', lambda name: f"https://{name}")
+        builder.parse_config(self.path)
