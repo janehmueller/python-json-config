@@ -29,6 +29,9 @@ class ConfigBuilder(object):
     def __validate_types(self):
         for field_name, field_type in self.__validation_types.items():
             value = self.__config.get(field_name)
+            # skip optional fields that do not exist
+            if value is None:
+                continue
             assert isinstance(value, field_type), f'Config field "{field_name}" with value "{value}" is not of type {field_type}'
 
     def validate_field_value(self, field_name: str, validation_function):
@@ -45,6 +48,9 @@ class ConfigBuilder(object):
     def __validate_field_values(self):
         for field_name, validation_functions in self.__validation_functions.items():
             value = self.__config.get(field_name)
+            # skip optional fields that do not exist
+            if value is None:
+                continue
             for validation_function in validation_functions:
                 validation_result = validation_function(value)
                 error_message = f'Error validating field "{field_name}" with value "{value}"'
@@ -62,6 +68,9 @@ class ConfigBuilder(object):
     def __transform_field_values(self):
         for field_name, transformation_function in self.__transformation_functions.items():
             value = self.__config.get(field_name)
+            # skip optional fields that do not exist
+            if value is None:
+                continue
             new_value = transformation_function(value)
             self.__config.update(field_name, new_value)
 
