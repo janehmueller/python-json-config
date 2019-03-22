@@ -95,3 +95,20 @@ assert isinstance(important_date, datetime)
 jwt_access_token_expires = config.jwt.access_token_expires
 assert isinstance(jwt_access_token_expires, timedelta)
 ```
+
+## Change config values
+```
+config = ConfigBuilder().parse_config({"server.port": 1024})
+
+config.add("server.host", "localhost")
+assert config.server.host == "localhost"
+
+config.add("cache", "redis")
+assert config.cache == "redis"
+
+config.update("server.port", 1025)
+assert config.server.port == 1025
+
+config.update("server.user", "user", upsert=True)
+assert config.server.user == "user"
+```
