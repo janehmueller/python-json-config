@@ -112,3 +112,22 @@ assert config.server.port == 1025
 config.update("server.user", "user", upsert=True)
 assert config.server.user == "user"
 ```
+
+## Overwrite fields with environment variables
+First, set environment variables (e.g., via bash):
+```
+$ MYPROJECT_SERVER_HOST="localhost"
+$ MYPROJECT_CACHE="redis"
+$ MYPYTHONPROJECTS_USER="user"
+```
+Then just tell the builder, which prefixes should be merged:
+```
+builder = ConfigBuilder()
+# you can also just pass a single prefix (builder.merge_with_env_variables("MYPROJECT")
+builder.merge_with_env_variables(["MYPROJECT", "MYPYTHONPROJECTS"])
+config = builder.parse_config({"server.host": "0.0.0.0"})
+
+assert config.server.host == "localhost"
+assert config.cache == "redis"
+assert config.user == "user"
+```
