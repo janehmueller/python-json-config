@@ -85,8 +85,7 @@ class ConfigNode(object):
             if key in self.optional_fields or (not self.strict_access and key not in self.required_fields):
                 return None
             else:
-                print_path = '.'.join(self.__path) + ('.' if len(self.__path) > 0 else '')
-                raise AttributeError(f'No value exists for key "{print_path}{key}"') from exception
+                raise AttributeError(f'No value exists for key "{self.__path_for_key(key)}"') from exception
 
     def add(self, path: Union[str, List[str]], value, overwrite: bool = True):
         """
@@ -105,8 +104,8 @@ class ConfigNode(object):
                 self.__node_dict[key] = ConfigNode(value, path=self.__path + [key])
             else:
                 if key in self.__node_dict and not overwrite:
-                    warnings.warn(RuntimeWarning(f"Overwriting already existing key {self.__path_str}.{key} "
-                                                 f"(old value: \"{self.__node_dict[key]}\", new value: \"{value}\")"))
+                    warnings.warn(RuntimeWarning(f'Overwriting already existing key {self.__path_for_key(key)} '
+                                                 f'(old value: "{self.__node_dict[key]}", new value: "{value}")'))
                 self.__node_dict[key] = value
         else:
             if key not in self.__node_dict:
@@ -127,7 +126,7 @@ class ConfigNode(object):
         key = path[0]
         if len(path) == 1:
             if key not in self.__node_dict and not upsert:
-                raise RuntimeError(f"Updating not existing key {self.__path_str}.{key}. To insert non existing keys"
+                raise RuntimeError(f"Updating not existing key {self.__path_for_key(key)}. To insert non existing keys"
                                    f"set upsert=True.")
             if isinstance(value, dict):
                 self.__node_dict[key] = ConfigNode(value, path=self.__path + [key])
@@ -160,6 +159,10 @@ class ConfigNode(object):
     @property
     def __path_str(self):
         return ".".join(self.__path)
+
+    def __path_for_key(self, key: str):
+        print_path = self.__path_str + '.' * bool(self.__path)
+        return print_path + key
 
     def __getstate__(self):
         """
