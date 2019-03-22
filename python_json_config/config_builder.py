@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Dict, Union, List
 
 import jsonschema
@@ -21,6 +22,9 @@ class ConfigBuilder(object):
         # settings of required and optional fields and (non-)strict access
         self.__strict_access: bool = None
         self.__field_access_settings: Dict[str, bool] = {}
+
+        # environment variables that will be merged into the config (pointing from path joined with dots to the value)
+        self.__environment_variables: Dict[str, str] = {}
 
     def validate_field_type(self, field_name: str, field_type: type):
         """
@@ -112,44 +116,79 @@ class ConfigBuilder(object):
     def set_field_access_optional(self):
         """
         Set the access mode of all fields to optional (if the field doesn't exist, None is returned).
+        :return: The builder object for chaining of calls.
         """
         self.__strict_access = False
+        return self
 
     def set_field_access_required(self):
         """
         Set the access mode of all fields to required (if the field doesn't exist, an exception is raised).
+        :return: The builder object for chaining of calls.
         """
         self.__strict_access = True
+        return self
 
     def add_required_field(self, field_name: str):
         """
         Set the access mode of the given field to required (if the field doesn't exist, an exception is raised).
         :param field_name: The field whose access mode is set to required.
+        :return: The builder object for chaining of calls.
         """
         self.__field_access_settings[field_name] = True
+        return self
 
     def add_required_fields(self, field_names: List[str]):
         """
         Set the access mode of the given fields to required (if the field doesn't exist, an exception is raised).
         :param field_names: List of fields whose access mode is set to required.
+        :return: The builder object for chaining of calls.
         """
         for field in field_names:
             self.add_required_field(field)
+        return self
 
     def add_optional_field(self, field_name: str):
         """
         Set the access mode of the given field to optional (if the field doesn't exist, None is returned).
         :param field_name: The field whose access mode is set to required.
+        :return: The builder object for chaining of calls.
         """
         self.__field_access_settings[field_name] = False
+        return self
 
     def add_optional_fields(self, field_names: List[str]):
         """
         Set the access mode of the given fields to optional (if the field doesn't exist, None is returned).
         :param field_names: List of fields whose access mode is set to required.
+        :return: The builder object for chaining of calls.
         """
         for field in field_names:
             self.add_optional_field(field)
+        return self
+
+    def merge_with_env_variables(self, prefix: Union[str, List[str]]):
+        """
+        Take all environment variables that start with the specified prefix or one of the specific prefixes and merge
+        them into the config. These values will be added before the validations and transformations happen.
+        The environment variable names will be split on underscores (_) and changed to lowercase to determine the
+        different keys (e.g., "FOO_BAR_TEST_ME" will result in the keys ["bar", "test", "me"] (with the prefix "FOO").
+        If the keys already exist in the config, the existing values will be overwritten by the values of the
+        environment variables.
+        :param prefix: Either a single or a list of prefixes of the environment variables (e.g., "FOO_").
+        :return: The builder object for chaining of calls.
+        """
+        prefixes = [prefix] if isinstance(prefix, str) else prefix
+        for key in os.environ:
+            for prefix in prefixes:
+                if key.startswith(prefix):
+                    value = os.environ[key]
+                    cleaned_key = key[len(prefix):]
+                    if cleaned_key[0] == "_":
+                        cleaned_key = cleaned_key[1:]
+                    cleaned_key = cleaned_key.lower().replace("_", ".")
+                    self.__environment_variables[cleaned_key] = value
+        return self
 
     def parse_config(self, config: Union[str, dict]) -> Config:
         """
@@ -158,20 +197,30 @@ class ConfigBuilder(object):
         :param config: Path to the config json file or a dictionary that contains the config values
         :return: The built config (that is validated and transformed according to the passed functions).
         """
+        # Either parse the JSON file or use the passed dictionary directly
         if isinstance(config, dict):
             config_dict = config
         else:
             with open(config, "r") as json_file:
                 config_dict = json.load(json_file)
 
+        # Validate with JSON schema if it exists
         if self.__json_schema is not None:
             jsonschema.validate(config_dict, self.__json_schema)
+
+        # Build the config object. Dictionaries in the input data are resolved recursively in the object creation.
         self.__config = Config(config_dict,
                                strict_access=self.__strict_access,
                                required_fields=[field for field, status in self.__field_access_settings.items()
                                                 if status],
                                optional_fields=[field for field, status in self.__field_access_settings.items()
                                                 if not status])
+
+        # Add/Overwrite values set via environment variables
+        for path, value in self.__environment_variables.items():
+            self.__config.add(path, value)
+
+        # Apply the custom validation and transformation function
         self.__validate_types()
         self.__validate_field_values()
         self.__transform_field_values()

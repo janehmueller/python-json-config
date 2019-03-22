@@ -195,11 +195,12 @@ class ConfigNode(object):
 
 
 class Config(ConfigNode):
-    def __init__(self, config_dict: dict,
+    def __init__(self,
+                 config_dict: dict,
                  strict_access: bool = True,
                  required_fields: List[Union[str, List[str]]] = None,
                  optional_fields: List[Union[str, List[str]]] = None):
-        super(Config, self).__init__(config_dict,
+        super(Config, self).__init__(config_dict=config_dict,
                                      path=[],
                                      strict_access=strict_access,
                                      required_fields=required_fields,
