@@ -1,4 +1,5 @@
 import json
+import os
 from unittest import TestCase
 
 from jsonschema import ValidationError
@@ -141,7 +142,6 @@ class ConfigBuilderTest(TestCase):
         with self.assertRaises(AttributeError):
             config.cache.name2
 
-
     def test_optional_validation(self):
         builder = ConfigBuilder()
         builder.set_field_access_optional()
@@ -149,3 +149,18 @@ class ConfigBuilderTest(TestCase):
         builder.validate_field_value('cache.host', 'localhost')
         builder.transform_field_value('cache.host', lambda name: f"https://{name}")
         builder.parse_config(self.path)
+
+    def test_merge_env_variable(self):
+        builder = ConfigBuilder()
+        prefix = "PYTHONJSONCONFIG"
+        variables = {f"{prefix}_TESTVALUE1": "bla", f"{prefix}_TESTVALUE2": "1"}
+        for key, value in variables.items():
+            os.environ[key] = value
+        builder.merge_with_env_variables(prefix)
+        for key, value in variables.items():
+            del os.environ[key]
+
+        config = builder.parse_config({"testvalue1": "blub", "testvalue3": 5})
+        self.assertEqual(config.testvalue1, "bla")
+        self.assertEqual(config.testvalue2, "1")
+        self.assertEqual(config.testvalue3, 5)

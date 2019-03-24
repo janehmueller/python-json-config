@@ -1,3 +1,4 @@
+import warnings
 from typing import List, Union, Tuple
 
 from .utils import normalize_path
@@ -84,17 +85,17 @@ class ConfigNode(object):
             if key in self.optional_fields or (not self.strict_access and key not in self.required_fields):
                 return None
             else:
-                print_path = '.'.join(self.__path) + ('.' if len(self.__path) > 0 else '')
-                raise AttributeError(f'No value exists for key "{print_path}{key}"') from exception
+                raise AttributeError(f'No value exists for key "{self.__path_for_key(key)}"') from exception
 
-    def update(self, path: Union[str, List[str]], value) -> None:
+    def add(self, path: Union[str, List[str]], value, overwrite: bool = True):
         """
-        Update field in the config.
+        Add a new field to the config.
         :param path: The name of the field. Can be either a string with '.' as delimiter of the nesting levels or a list
                      of keys with each element being one nesting level.
                      E.g., the string 'key1.key2' and list ['key1', 'key2'] reference the same config element.
-        :param value: The value that should replace the old value. If this value is a dictionary it is transformed into
+        :param value: The value that will be inserted. If this value is a dictionary it is transformed into
                       a ConfigNode.
+        :param overwrite: If True, the value will be inserted if it already exists. Otherwise, a warning is printed.
         """
         path = normalize_path(path)
         key = path[0]
@@ -102,9 +103,37 @@ class ConfigNode(object):
             if isinstance(value, dict):
                 self.__node_dict[key] = ConfigNode(value, path=self.__path + [key])
             else:
+                if key in self.__node_dict and not overwrite:
+                    warnings.warn(RuntimeWarning(f'Overwriting already existing key {self.__path_for_key(key)} '
+                                                 f'(old value: "{self.__node_dict[key]}", new value: "{value}")'))
                 self.__node_dict[key] = value
         else:
-            self.get(key).update(path[1:], value)
+            if key not in self.__node_dict:
+                self.__node_dict[key] = ConfigNode({}, path=self.__path + [key])
+            self.get(key).add(path=path[1:], value=value, overwrite=overwrite)
+
+    def update(self, path: Union[str, List[str]], value, upsert: bool = True) -> None:
+        """
+        Update field in the config.
+        :param path: The name of the field. Can be either a string with '.' as delimiter of the nesting levels or a list
+                     of keys with each element being one nesting level.
+                     E.g., the string 'key1.key2' and list ['key1', 'key2'] reference the same config element.
+        :param value: The value that should replace the old value. If this value is a dictionary it is transformed into
+                      a ConfigNode.
+        :param upsert: If True, the value will be inserted if it doesn't exist. Otherwise, an exception is raised.
+        """
+        path = normalize_path(path)
+        key = path[0]
+        if len(path) == 1:
+            if key not in self.__node_dict and not upsert:
+                raise RuntimeError(f"Updating not existing key {self.__path_for_key(key)}. To insert non existing keys"
+                                   f"set upsert=True.")
+            if isinstance(value, dict):
+                self.__node_dict[key] = ConfigNode(value, path=self.__path + [key])
+            else:
+                self.__node_dict[key] = value
+        else:
+            self.get(key).update(path=path[1:], value=value, upsert=upsert)
 
     def __contains__(self, item: Union[str, List[str]]) -> bool:
         """
@@ -126,6 +155,14 @@ class ConfigNode(object):
                f'required_fields={self.required_fields}, optional_fields={self.optional_fields})'
 
     __repr__ = __str__
+
+    @property
+    def __path_str(self):
+        return ".".join(self.__path)
+
+    def __path_for_key(self, key: str):
+        print_path = self.__path_str + '.' * bool(self.__path)
+        return print_path + key
 
     def __getstate__(self):
         """
@@ -158,11 +195,12 @@ class ConfigNode(object):
 
 
 class Config(ConfigNode):
-    def __init__(self, config_dict: dict,
+    def __init__(self,
+                 config_dict: dict,
                  strict_access: bool = True,
                  required_fields: List[Union[str, List[str]]] = None,
                  optional_fields: List[Union[str, List[str]]] = None):
-        super(Config, self).__init__(config_dict,
+        super(Config, self).__init__(config_dict=config_dict,
                                      path=[],
                                      strict_access=strict_access,
                                      required_fields=required_fields,
