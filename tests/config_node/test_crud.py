@@ -1,3 +1,4 @@
+import os
 import warnings
 from unittest import TestCase
 
@@ -117,3 +118,19 @@ class ConfigNodeCrudTest(TestCase):
             self.assertIsNone(config.key2.nokey)
         with self.assertRaises(AttributeError):
             self.assertIsNone(config.key2.nokey2)
+
+    def test_merge_env_variable(self):
+        prefix = "PYTHONJSONCONFIG"
+        variables = {f"{prefix}_TESTVALUE1": "bla", f"{prefix}_TESTVALUE2": "1"}
+        for key, value in variables.items():
+            os.environ[key] = value
+
+        config = ConfigNode({"testvalue1": "blub", "testvalue3": 5})
+        config.merge_with_env_variables(prefix)
+
+        self.assertEqual(config.testvalue1, "bla")
+        self.assertEqual(config.testvalue2, "1")
+        self.assertEqual(config.testvalue3, 5)
+
+        for key, value in variables.items():
+            del os.environ[key]
