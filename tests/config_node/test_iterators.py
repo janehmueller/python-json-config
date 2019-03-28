@@ -55,3 +55,9 @@ class ConfigNodeIteratorsTest(TestCase):
             self.assertEqual(item_value, value)
             self.assertEqual(config.get(key), value)
 
+    def test_to_dict(self):
+        config = ConfigNode(self.config_dict)
+        self.assertEqual(config.to_dict(), self.config_dict)
+        self.assertEqual(config.key2.to_dict(), self.config_dict["key2"])
+        self.assertEqual(config.key2.key4.to_dict(), self.config_dict["key2"]["key4"])
+
