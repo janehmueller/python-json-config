@@ -1,3 +1,4 @@
+import os
 import warnings
 import pytest
 
@@ -113,3 +114,20 @@ def test_strict_access(config_dict):
         assert config.key2.nokey is None
     with pytest.raises(AttributeError):
         assert config.key2.nokey2 is None
+
+
+def test_merge_env_variable():
+    prefix = "PYTHONJSONCONFIG"
+    variables = {f"{prefix}_TESTVALUE1": "bla", f"{prefix}_TESTVALUE2": "1"}
+    for key, value in variables.items():
+        os.environ[key] = value
+
+    config = ConfigNode({"testvalue1": "blub", "testvalue3": 5})
+    config.merge_with_env_variables(prefix)
+
+    assert config.testvalue1 == "bla"
+    assert config.testvalue2 == "1"
+    assert config.testvalue3 == 5
+
+    for key, value in variables.items():
+        del os.environ[key]

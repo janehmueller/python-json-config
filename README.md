@@ -131,3 +131,13 @@ assert config.server.host == "localhost"
 assert config.cache == "redis"
 assert config.user == "user"
 ```
+Alternatively you can also do the merging after creating the config object:
+```
+builder = ConfigBuilder()
+config = builder.parse_config({"server.host": "0.0.0.0"})
+config.merge_with_env_variables(["MYPROJECT", "MYPYTHONPROJECTS"])
+
+assert config.server.host == "localhost"
+assert config.cache == "redis"
+assert config.user == "user"
+```

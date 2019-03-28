@@ -168,16 +168,18 @@ def test_optional_validation(path):
 
 
 def test_merge_env_variable():
-    builder = ConfigBuilder()
     prefix = "PYTHONJSONCONFIG"
     variables = {f"{prefix}_TESTVALUE1": "bla", f"{prefix}_TESTVALUE2": "1"}
     for key, value in variables.items():
         os.environ[key] = value
-    builder.merge_with_env_variables(prefix)
-    for key, value in variables.items():
-        del os.environ[key]
 
+    builder = ConfigBuilder()
+    builder.merge_with_env_variables(prefix)
     config = builder.parse_config({"testvalue1": "blub", "testvalue3": 5})
+
     assert config.testvalue1 == "bla"
     assert config.testvalue2 == "1"
     assert config.testvalue3 == 5
+
+    for key, value in variables.items():
+        del os.environ[key]
