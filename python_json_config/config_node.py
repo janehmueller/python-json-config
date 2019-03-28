@@ -47,20 +47,9 @@ class ConfigNode(object):
 
         self.__node_dict = node_dict
 
-    def __getattr__(self, item: str):
-        """
-        Enables access of config elements via dots (i.e. config.field1 instead of config["field1"]). This method wraps
-        the get method.
-        If strict access is defined or the field is a required field, an AttributeError is thrown if the referenced
-        field does not exist. Otherwise, i.e. non-strict access is defined or the field is an optional field, None is
-        returned in the field does not exist.
-        :raises AttributeError: Raised when a non-existing field is accessed when either strict access is defined or the
-                                field is a required field.
-        :param item: the field that is accessed.
-        :return: The value of the referenced field.
-        """
-        return self.get(item)
-
+    """
+    CRUD methods to access and modify the config contents.
+    """
     def get(self, path: Union[str, List[str]]):
         """
         Retrieve a value in the config.
@@ -155,6 +144,59 @@ class ConfigNode(object):
                     cleaned_key = cleaned_key.lower().split("_")
                     self.update(path=cleaned_key, value=value, upsert=True)
 
+    """
+    Iteration functions
+    """
+    def keys(self):
+        for key, value in self.__node_dict.items():
+            if isinstance(value, ConfigNode):
+                yield from value.keys()
+            else:
+                yield self.__path_for_key(key)
+
+    def values(self):
+        for key, value in self.__node_dict.items():
+            if isinstance(value, ConfigNode):
+                yield from value.values()
+            else:
+                yield value
+
+    def items(self):
+        for key, value in self.__node_dict.items():
+            if isinstance(value, ConfigNode):
+                yield from value.items()
+            else:
+                yield self.__path_for_key(key), value
+
+    def to_dict(self):
+        config_dict = {}
+        for key, value in self.__node_dict.items():
+            if isinstance(value, ConfigNode):
+                config_dict[key] = value.to_dict()
+            else:
+                config_dict[key] = value
+        return config_dict
+
+    """
+    Built-in python functions
+    """
+    def __iter__(self):
+        yield from self.keys()
+
+    def __getattr__(self, item: str):
+        """
+        Enables access of config elements via dots (i.e. config.field1 instead of config["field1"]). This method wraps
+        the get method.
+        If strict access is defined or the field is a required field, an AttributeError is thrown if the referenced
+        field does not exist. Otherwise, i.e. non-strict access is defined or the field is an optional field, None is
+        returned in the field does not exist.
+        :raises AttributeError: Raised when a non-existing field is accessed when either strict access is defined or the
+                                field is a required field.
+        :param item: the field that is accessed.
+        :return: The value of the referenced field.
+        """
+        return self.get(item)
+
     def __contains__(self, item: Union[str, List[str]]) -> bool:
         """
         Test if a field exists in the config and is not None (result in the case of a non-existing optional field).
@@ -176,14 +218,6 @@ class ConfigNode(object):
 
     __repr__ = __str__
 
-    @property
-    def __path_str(self):
-        return ".".join(self.__path)
-
-    def __path_for_key(self, key: str):
-        print_path = self.__path_str + '.' * bool(self.__path)
-        return print_path + key
-
     def __getstate__(self):
         """
         This method is needed to enable pickling since this class overwrites __getattr__.
@@ -195,6 +229,17 @@ class ConfigNode(object):
         This method is needed to enable pickling since this class overwrites __getattr__.
         """
         vars(self).update(state)
+
+    """
+    Private functions used in this class (e.g., for utility).
+    """
+    @property
+    def __path_str(self):
+        return ".".join(self.__path)
+
+    def __path_for_key(self, key: str):
+        print_path = self.__path_str + '.' * bool(self.__path)
+        return print_path + key
 
     def __parse_field_settings(self, field_names: List[Union[str, List[str]]]) -> Tuple[List[str], List[List[str]]]:
         """
