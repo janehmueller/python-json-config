@@ -1,120 +1,115 @@
 import warnings
-from unittest import TestCase
+import pytest
 
 from python_json_config.config_node import ConfigNode
 
 
-class ConfigNodeCrudTest(TestCase):
+def test_creation(config_dict):
+    node = ConfigNode(config_dict)
+    assert node.key1 == 1
+    assert node.__dict__['_ConfigNode__path'] == []
+    assert isinstance(node.key2, ConfigNode)
 
-    def setUp(self):
-        self.config_dict = {
-            'key1': 1,
-            'key2': {
-                'key3': 3,
-                'key4': {'key5': 5}
-            }
-        }
+    nested_node = node.key2
+    assert nested_node.key3 == 3
+    assert nested_node.__dict__['_ConfigNode__path'] == ['key2']
+    assert isinstance(nested_node.key4, ConfigNode)
 
-    def test_creation(self):
-        node = ConfigNode(self.config_dict)
-        self.assertEqual(node.key1, 1)
-        self.assertEqual(node.__dict__['_ConfigNode__path'], [])
-        self.assertIsInstance(node.key2, ConfigNode)
+    nested_node = nested_node.key4
+    assert nested_node.key5 == 5
+    assert nested_node.__dict__['_ConfigNode__path'] == ['key2', 'key4']
 
-        nested_node = node.key2
-        self.assertEqual(nested_node.key3, 3)
-        self.assertEqual(nested_node.__dict__['_ConfigNode__path'], ['key2'])
-        self.assertIsInstance(nested_node.key4, ConfigNode)
 
-        nested_node = nested_node.key4
-        self.assertEqual(nested_node.key5, 5)
-        self.assertEqual(nested_node.__dict__['_ConfigNode__path'], ['key2', 'key4'])
+def test_get(config_dict):
+    node = ConfigNode(config_dict)
+    assert node.key1 == 1
+    with pytest.raises(AttributeError):
+        node.nokey
 
-    def test_get(self):
-        node = ConfigNode(self.config_dict)
-        self.assertEqual(node.key1, 1)
-        with self.assertRaises(AttributeError):
-            node.nokey
+    assert node.get('key1') == 1
+    with pytest.raises(AttributeError):
+        node.get('nokey')
 
-        self.assertEqual(node.get('key1'), 1)
-        with self.assertRaises(AttributeError):
-            node.get('nokey')
+    assert node.get('key2.key3') == 3
 
-        self.assertEqual(node.get('key2.key3'), 3)
 
-    def test_add(self):
-        node = ConfigNode({'key1': 1})
-        self.assertEqual(node.key1, 1)
+def test_add():
+    node = ConfigNode({'key1': 1})
+    assert node.key1 == 1
 
-        with self.assertRaises(AttributeError):
-            node.key2
-        node.add('key2', 2)
-        self.assertEqual(node.key2, 2)
+    with pytest.raises(AttributeError):
+        node.key2
+    node.add('key2', 2)
+    assert node.key2 == 2
 
-        with self.assertRaises(AttributeError):
-            node.key3.key4
-        node.add('key3.key4', "test")
-        self.assertEqual(node.key3.key4, "test")
+    with pytest.raises(AttributeError):
+        node.key3.key4
+    node.add('key3.key4', "test")
+    assert node.key3.key4 == "test"
 
-    def test_add_overwrite(self):
-        node = ConfigNode({'key1': 1})
-        self.assertEqual(node.key1, 1)
 
-        with warnings.catch_warnings(record=True) as warning_log:
-            self.assertEqual(len(warning_log), 0)
+def test_add_overwrite():
+    node = ConfigNode({'key1': 1})
+    assert node.key1 == 1
 
-            node.add('key1', 2, overwrite=False)
-            self.assertEqual(len(warning_log), 1)
-            self.assertEqual(node.key1, 2)
+    with warnings.catch_warnings(record=True) as warning_log:
+        assert len(warning_log) == 0
 
-            node.add('key1', 3)
-            self.assertEqual(len(warning_log), 1)
-            self.assertEqual(node.key1, 3)
+        node.add('key1', 2, overwrite=False)
+        assert len(warning_log) == 1
+        assert node.key1 == 2
 
-    def test_update(self):
-        node = ConfigNode(self.config_dict)
+        node.add('key1', 3)
+        assert len(warning_log) == 1
+        assert node.key1 == 3
 
-        self.assertEqual(node.key1, 1)
-        node.update('key1', 2)
-        self.assertEqual(node.key1, 2)
 
-        node.update('key1', {'newkey': 1})
-        self.assertIsInstance(node.key1, ConfigNode)
-        self.assertEqual(node.key1.newkey, 1)
+def test_update(config_dict):
+    node = ConfigNode(config_dict)
 
-        self.assertIsInstance(node.key2.key4, ConfigNode)
-        node.update('key2.key4', 1337)
-        self.assertEqual(node.key2.key4, 1337)
+    assert node.key1 == 1
+    node.update('key1', 2)
+    assert node.key1 == 2
 
-    def test_update_upsert(self):
-        node = ConfigNode({'key1': 1})
+    node.update('key1', {'newkey': 1})
+    assert isinstance(node.key1, ConfigNode)
+    assert node.key1.newkey == 1
 
-        with self.assertRaises(AttributeError):
-            node.key2
+    assert isinstance(node.key2.key4, ConfigNode)
+    node.update('key2.key4', 1337)
+    assert node.key2.key4 == 1337
 
-        with self.assertRaises(RuntimeError):
-            node.update('key2', 'asd', upsert=False)
 
-        node.update('key2', 'asd', upsert=True)
-        self.assertEqual(node.key2, 'asd')
+def test_update_upsert():
+    node = ConfigNode({'key1': 1})
 
-    def test_strict_access(self):
-        config = ConfigNode(self.config_dict,
-                            strict_access=True,
-                            optional_fields=['nokey', ['key2', 'nokey'], 'key2.nokey2'])
-        self.assertIsNone(config.nokey)
-        self.assertIsNone(config.key2.nokey)
-        self.assertIsNone(config.key2.nokey2)
-        with self.assertRaises(AttributeError):
-            config.key2.nokey3
+    with pytest.raises(AttributeError):
+        node.key2
 
-        config = ConfigNode(self.config_dict,
-                            strict_access=False,
-                            required_fields=['nokey', ['key2', 'nokey'], 'key2.nokey2'])
-        self.assertIsNone(config.key2.nokey3)
-        with self.assertRaises(AttributeError):
-            self.assertIsNone(config.nokey)
-        with self.assertRaises(AttributeError):
-            self.assertIsNone(config.key2.nokey)
-        with self.assertRaises(AttributeError):
-            self.assertIsNone(config.key2.nokey2)
+    with pytest.raises(RuntimeError):
+        node.update('key2', 'asd', upsert=False)
+
+    node.update('key2', 'asd', upsert=True)
+    assert node.key2 == 'asd'
+
+
+def test_strict_access(config_dict):
+    config = ConfigNode(config_dict,
+                        strict_access=True,
+                        optional_fields=['nokey', ['key2', 'nokey'], 'key2.nokey2'])
+    assert config.nokey is None
+    assert config.key2.nokey is None
+    assert config.key2.nokey2 is None
+    with pytest.raises(AttributeError):
+        config.key2.nokey3
+
+    config = ConfigNode(config_dict,
+                        strict_access=False,
+                        required_fields=['nokey', ['key2', 'nokey'], 'key2.nokey2'])
+    assert config.key2.nokey3 is None
+    with pytest.raises(AttributeError):
+        assert config.nokey is None
+    with pytest.raises(AttributeError):
+        assert config.key2.nokey is None
+    with pytest.raises(AttributeError):
+        assert config.key2.nokey2 is None
