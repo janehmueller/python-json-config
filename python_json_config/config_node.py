@@ -46,20 +46,9 @@ class ConfigNode(object):
 
         self.__node_dict = node_dict
 
-    def __getattr__(self, item: str):
-        """
-        Enables access of config elements via dots (i.e. config.field1 instead of config["field1"]). This method wraps
-        the get method.
-        If strict access is defined or the field is a required field, an AttributeError is thrown if the referenced
-        field does not exist. Otherwise, i.e. non-strict access is defined or the field is an optional field, None is
-        returned in the field does not exist.
-        :raises AttributeError: Raised when a non-existing field is accessed when either strict access is defined or the
-                                field is a required field.
-        :param item: the field that is accessed.
-        :return: The value of the referenced field.
-        """
-        return self.get(item)
-
+    """
+    CRUD methods to access and modify the config contents.
+    """
     def get(self, path: Union[str, List[str]]):
         """
         Retrieve a value in the config.
@@ -135,64 +124,9 @@ class ConfigNode(object):
         else:
             self.get(key).update(path=path[1:], value=value, upsert=upsert)
 
-    def __contains__(self, item: Union[str, List[str]]) -> bool:
-        """
-        Test if a field exists in the config and is not None (result in the case of a non-existing optional field).
-        If the field does not exist, an AttributeError is thrown, and therefore False is returned.
-        :param item: The field whose existence is tested. Can be either a string with '.' as delimiter of the nesting
-                     levels or a list of keys with each element being one nesting level.
-                     E.g., the string 'key1.key2' and list ['key1', 'key2'] reference the same config element.
-        :return: True if the field exists in the Config and False otherwise.
-        """
-        try:
-            result = self.get(item)
-            return result is not None
-        except AttributeError:
-            return False
-
-    def __str__(self):
-        return f'ConfigNode(path={self.__path}, values={self.__node_dict}, strict_access={self.strict_access}, ' \
-               f'required_fields={self.required_fields}, optional_fields={self.optional_fields})'
-
-    __repr__ = __str__
-
-    @property
-    def __path_str(self):
-        return ".".join(self.__path)
-
-    def __path_for_key(self, key: str):
-        print_path = self.__path_str + '.' * bool(self.__path)
-        return print_path + key
-
-    def __getstate__(self):
-        """
-        This method is needed to enable pickling since this class overwrites __getattr__.
-        """
-        return vars(self)
-
-    def __setstate__(self, state):
-        """
-        This method is needed to enable pickling since this class overwrites __getattr__.
-        """
-        vars(self).update(state)
-
-    def __parse_field_settings(self, field_names: List[Union[str, List[str]]]) -> Tuple[List[str], List[List[str]]]:
-        """
-        Parses settings (required or optional) for fields and subfields of this node.
-        :param field_names: A list of either field names containing dots or already normalized paths.
-        :return: A tuple of first a list of the field names that are in this node and secondly a list of normalized
-                 paths of subfields (i.e., fields in children of this node).
-        """
-        settings = []
-        subfield_settings = []
-        normalized_fields = [normalize_path(field) for field in field_names]
-        for path in normalized_fields:
-            if len(path) == 1:
-                settings.append(path[0])
-            else:
-                subfield_settings.append(path[1:])
-        return settings, subfield_settings
-
+    """
+    Iteration functions
+    """
     def keys(self):
         for key, value in self.__node_dict.items():
             if isinstance(value, ConfigNode):
@@ -214,12 +148,86 @@ class ConfigNode(object):
             else:
                 yield self.__path_for_key(key), value
 
+    """
+    Built-in python functions
+    """
     def __iter__(self):
-        for key, value in self.__node_dict.items():
-            if isinstance(value, ConfigNode):
-                yield from iter(value)
+        yield from self.keys()
+
+    def __getattr__(self, item: str):
+        """
+        Enables access of config elements via dots (i.e. config.field1 instead of config["field1"]). This method wraps
+        the get method.
+        If strict access is defined or the field is a required field, an AttributeError is thrown if the referenced
+        field does not exist. Otherwise, i.e. non-strict access is defined or the field is an optional field, None is
+        returned in the field does not exist.
+        :raises AttributeError: Raised when a non-existing field is accessed when either strict access is defined or the
+                                field is a required field.
+        :param item: the field that is accessed.
+        :return: The value of the referenced field.
+        """
+        return self.get(item)
+
+    def __contains__(self, item: Union[str, List[str]]) -> bool:
+        """
+        Test if a field exists in the config and is not None (result in the case of a non-existing optional field).
+        If the field does not exist, an AttributeError is thrown, and therefore False is returned.
+        :param item: The field whose existence is tested. Can be either a string with '.' as delimiter of the nesting
+                     levels or a list of keys with each element being one nesting level.
+                     E.g., the string 'key1.key2' and list ['key1', 'key2'] reference the same config element.
+        :return: True if the field exists in the Config and False otherwise.
+        """
+        try:
+            result = self.get(item)
+            return result is not None
+        except AttributeError:
+            return False
+
+    def __str__(self):
+        return f'ConfigNode(path={self.__path}, values={self.__node_dict}, strict_access={self.strict_access}, ' \
+               f'required_fields={self.required_fields}, optional_fields={self.optional_fields})'
+
+    __repr__ = __str__
+
+    def __getstate__(self):
+        """
+        This method is needed to enable pickling since this class overwrites __getattr__.
+        """
+        return vars(self)
+
+    def __setstate__(self, state):
+        """
+        This method is needed to enable pickling since this class overwrites __getattr__.
+        """
+        vars(self).update(state)
+
+    """
+    Private functions used in this class (e.g., for utility).
+    """
+    @property
+    def __path_str(self):
+        return ".".join(self.__path)
+
+    def __path_for_key(self, key: str):
+        print_path = self.__path_str + '.' * bool(self.__path)
+        return print_path + key
+
+    def __parse_field_settings(self, field_names: List[Union[str, List[str]]]) -> Tuple[List[str], List[List[str]]]:
+        """
+        Parses settings (required or optional) for fields and subfields of this node.
+        :param field_names: A list of either field names containing dots or already normalized paths.
+        :return: A tuple of first a list of the field names that are in this node and secondly a list of normalized
+                 paths of subfields (i.e., fields in children of this node).
+        """
+        settings = []
+        subfield_settings = []
+        normalized_fields = [normalize_path(field) for field in field_names]
+        for path in normalized_fields:
+            if len(path) == 1:
+                settings.append(path[0])
             else:
-                yield self.__path_for_key(key)
+                subfield_settings.append(path[1:])
+        return settings, subfield_settings
 
 
 class Config(ConfigNode):
