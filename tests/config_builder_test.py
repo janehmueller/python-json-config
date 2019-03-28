@@ -151,16 +151,18 @@ class ConfigBuilderTest(TestCase):
         builder.parse_config(self.path)
 
     def test_merge_env_variable(self):
-        builder = ConfigBuilder()
         prefix = "PYTHONJSONCONFIG"
         variables = {f"{prefix}_TESTVALUE1": "bla", f"{prefix}_TESTVALUE2": "1"}
         for key, value in variables.items():
             os.environ[key] = value
-        builder.merge_with_env_variables(prefix)
-        for key, value in variables.items():
-            del os.environ[key]
 
+        builder = ConfigBuilder()
+        builder.merge_with_env_variables(prefix)
         config = builder.parse_config({"testvalue1": "blub", "testvalue3": 5})
+
         self.assertEqual(config.testvalue1, "bla")
         self.assertEqual(config.testvalue2, "1")
         self.assertEqual(config.testvalue3, 5)
+
+        for key, value in variables.items():
+            del os.environ[key]
