@@ -1,3 +1,4 @@
+import os
 import warnings
 from typing import List, Union, Tuple
 
@@ -134,6 +135,25 @@ class ConfigNode(object):
                 self.__node_dict[key] = value
         else:
             self.get(key).update(path=path[1:], value=value, upsert=upsert)
+
+    def merge_with_env_variables(self, prefix: Union[str, List[str]]):
+        """
+        Take all environment variables that start with the specified prefix or one of the specific prefixes and merge
+        them into the config. These values overwrite existing ones.
+        The environment variable names will be split on underscores (_) and changed to lowercase to determine the
+        different keys (e.g., "FOO_BAR_TEST_ME" will result in the keys ["bar", "test", "me"] (with the prefix "FOO").
+        :param prefix: Either a single or a list of prefixes of the environment variables (e.g., "FOO_").
+        """
+        prefixes = [prefix] if isinstance(prefix, str) else prefix
+        for key in os.environ:
+            for prefix in prefixes:
+                if key.startswith(prefix):
+                    value = os.environ[key]
+                    cleaned_key = key[len(prefix):]
+                    if cleaned_key[0] == "_":
+                        cleaned_key = cleaned_key[1:]
+                    cleaned_key = cleaned_key.lower().split("_")
+                    self.update(path=cleaned_key, value=value, upsert=True)
 
     def __contains__(self, item: Union[str, List[str]]) -> bool:
         """
