@@ -9,6 +9,7 @@ matrix:
       sudo: true
 
 script:
-  - python setup.py test
+  - flake8 --format=abspath
+  - pytest
 
 cache: pip
