@@ -48,7 +48,7 @@ class ConfigNode(object):
         self.__node_dict = node_dict
 
     """
-    CRUD methods to access and modify the config contents.
+    Methods to access and modify the config contents.
     """
     def get(self, path: Union[str, List[str]]):
         """
