@@ -193,6 +193,34 @@ class ConfigNode(object):
                 subfield_settings.append(path[1:])
         return settings, subfield_settings
 
+    def keys(self):
+        for key, value in self.__node_dict.items():
+            if isinstance(value, ConfigNode):
+                yield from value.keys()
+            else:
+                yield self.__path_for_key(key)
+
+    def values(self):
+        for key, value in self.__node_dict.items():
+            if isinstance(value, ConfigNode):
+                yield from value.values()
+            else:
+                yield value
+
+    def items(self):
+        for key, value in self.__node_dict.items():
+            if isinstance(value, ConfigNode):
+                yield from value.items()
+            else:
+                yield self.__path_for_key(key), value
+
+    def __iter__(self):
+        for key, value in self.__node_dict.items():
+            if isinstance(value, ConfigNode):
+                yield from iter(value)
+            else:
+                yield self.__path_for_key(key)
+
 
 class Config(ConfigNode):
     def __init__(self,
