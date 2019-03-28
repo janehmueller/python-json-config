@@ -1,10 +1,13 @@
-from .config_node_test import ConfigNodeTest
+from .config_node import ConfigNodeSerializationTest, ConfigNodeIteratorsTest, ConfigNodeCrudTest, ConfigNodeUtilsTest
 from .config_builder_test import ConfigBuilderTest
 from .validators import NetworkValidatorsTest, GenericValidatorsTest
 from .transformers import GenericTransformersTest
 
 __all__ = [
-    'ConfigNodeTest',
+    'ConfigNodeIteratorsTest',
+    'ConfigNodeCrudTest',
+    'ConfigNodeSerializationTest',
+    'ConfigNodeUtilsTest',
     'ConfigBuilderTest',
     'NetworkValidatorsTest',
     'GenericValidatorsTest',
