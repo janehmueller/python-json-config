@@ -148,6 +148,15 @@ class ConfigNode(object):
             else:
                 yield self.__path_for_key(key), value
 
+    def to_dict(self):
+        config_dict = {}
+        for key, value in self.__node_dict.items():
+            if isinstance(value, ConfigNode):
+                config_dict[key] = value.to_dict()
+            else:
+                config_dict[key] = value
+        return config_dict
+
     """
     Built-in python functions
     """
