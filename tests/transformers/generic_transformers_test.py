@@ -22,4 +22,3 @@ class GenericTransformersTest(TestCase):
         ]
         delta_sum = reduce(lambda delta1, delta2: delta1 + delta2, deltas)
         self.assertEqual(delta_sum, timedelta(weeks=2))
-

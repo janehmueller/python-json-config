@@ -15,7 +15,6 @@ class GenericValidatorsTest(TestCase):
         self.assertEqual(is_timedelta(invalid_timedeltas[0]), (False, 'Timedelta contains more than 5 elements.'))
         self.assertEqual(is_timedelta(invalid_timedeltas[1]), (False, 'Timedelta contains non-integer elements.'))
 
-
     def test_is_valid_choice(self):
         list_options = [1, 2, '3']
         list_validator = is_valid_choice(list_options)

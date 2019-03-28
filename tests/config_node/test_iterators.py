@@ -60,4 +60,3 @@ class ConfigNodeIteratorsTest(TestCase):
         self.assertEqual(config.to_dict(), self.config_dict)
         self.assertEqual(config.key2.to_dict(), self.config_dict["key2"])
         self.assertEqual(config.key2.key4.to_dict(), self.config_dict["key2"]["key4"])
-

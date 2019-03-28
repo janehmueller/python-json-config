@@ -226,7 +226,3 @@ class ConfigBuilder(object):
         self.__transform_field_values()
 
         return self.__config
-
-
-
-

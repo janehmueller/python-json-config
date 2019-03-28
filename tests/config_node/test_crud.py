@@ -11,7 +11,7 @@ class ConfigNodeCrudTest(TestCase):
             'key1': 1,
             'key2': {
                 'key3': 3,
-                'key4': { 'key5': 5 }
+                'key4': {'key5': 5}
             }
         }
 
@@ -37,7 +37,8 @@ class ConfigNodeCrudTest(TestCase):
             node.nokey
 
         self.assertEqual(node.get('key1'), 1)
-        with self.assertRaises(AttributeError): node.get('nokey')
+        with self.assertRaises(AttributeError):
+            node.get('nokey')
 
         self.assertEqual(node.get('key2.key3'), 3)
 

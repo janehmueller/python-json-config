@@ -11,7 +11,7 @@ class ConfigNodeSerializationTest(TestCase):
             'key1': 1,
             'key2': {
                 'key3': 3,
-                'key4': { 'key5': 5 }
+                'key4': {'key5': 5}
             }
         }
 
