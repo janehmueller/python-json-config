@@ -1,5 +1,4 @@
 import json
-import os
 from typing import Dict, Union, List
 
 import jsonschema
@@ -23,8 +22,8 @@ class ConfigBuilder(object):
         self.__strict_access: bool = None
         self.__field_access_settings: Dict[str, bool] = {}
 
-        # environment variables that will be merged into the config (pointing from path joined with dots to the value)
-        self.__environment_variables: Dict[str, str] = {}
+        # environment variable prefixes  that will be merged into the config
+        self.__environment_variable_prefixes: List[str] = []
 
     def validate_field_type(self, field_name: str, field_type: type):
         """
@@ -179,15 +178,7 @@ class ConfigBuilder(object):
         :return: The builder object for chaining of calls.
         """
         prefixes = [prefix] if isinstance(prefix, str) else prefix
-        for key in os.environ:
-            for prefix in prefixes:
-                if key.startswith(prefix):
-                    value = os.environ[key]
-                    cleaned_key = key[len(prefix):]
-                    if cleaned_key[0] == "_":
-                        cleaned_key = cleaned_key[1:]
-                    cleaned_key = cleaned_key.lower().replace("_", ".")
-                    self.__environment_variables[cleaned_key] = value
+        self.__environment_variable_prefixes += prefixes
         return self
 
     def parse_config(self, config: Union[str, dict]) -> Config:
@@ -217,8 +208,7 @@ class ConfigBuilder(object):
                                                 if not status])
 
         # Add/Overwrite values set via environment variables
-        for path, value in self.__environment_variables.items():
-            self.__config.add(path, value)
+        self.__config.merge_with_env_variables(self.__environment_variable_prefixes)
 
         # Apply the custom validation and transformation function
         self.__validate_types()
@@ -226,7 +216,3 @@ class ConfigBuilder(object):
         self.__transform_field_values()
 
         return self.__config
-
-
-
-

@@ -25,6 +25,7 @@ def is_timedelta(value: str) -> Union[bool, Tuple[bool, str]]:
 
     return True
 
+
 def is_valid_choice(options):
     """
     Returns a function that tests if the config value is an element of the passed options.
