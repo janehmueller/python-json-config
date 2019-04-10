@@ -141,3 +141,23 @@ assert config.server.host == "localhost"
 assert config.cache == "redis"
 assert config.user == "user"
 ```
+
+## Serialization
+The config can be serialized to a dictionary, json or binary (via pickle or msgpack).
+```
+builder = ConfigBuilder()
+config = builder.parse_config({"server.host": "0.0.0.0"})
+
+import pickle
+pickle_config = pickle.loads(pickle.dumps(config))
+
+dict_config = builder.parse_config(config.to_dict())
+
+import json
+json_config = builder.parse_config(config.to_json())
+
+import msgpack
+msgpack_config = Config.from_msgpack(config.to_msgpack())
+```
+
+**Important note:** serializing via json or msgpack will stringify any non-serializable value (e.g., datetime objects).

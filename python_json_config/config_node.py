@@ -3,6 +3,8 @@ import os
 import warnings
 from typing import List, Union, Tuple
 
+import msgpack
+
 from .utils import normalize_path
 
 
@@ -182,7 +184,24 @@ class ConfigNode(object):
         return config_dict
 
     def to_json(self) -> str:
-        return json.dumps(self.to_dict())
+        """
+        Serialize the config to a json dictionary/object. The default serialization method for non-JSON serializable
+        types is just using their string representation (e.g., datetime.timedelta).
+        :return: The JSON object of the config as string.
+        """
+        return json.dumps(self.to_dict(), default=str)
+
+    def to_msgpack(self) -> bytes:
+        """
+        Serialize the config as a dictionary via msgpack. To handle unserializable data types, the config is first
+        parsed to json (which converts every unparsable type to strings), parsed back and then serialized with msgpack.
+        :return: The binary msgpack representation of the config.
+        """
+        return msgpack.dumps(json.loads(self.to_json()))
+
+    @classmethod
+    def from_msgpack(cls, data: bytes) -> 'ConfigNode':
+        return cls(msgpack.loads(data, raw=False))
 
     """
     Built-in python functions
@@ -224,6 +243,12 @@ class ConfigNode(object):
                f"required_fields={self.required_fields}, optional_fields={self.optional_fields})"
 
     __repr__ = __str__
+
+    def __eq__(self, other):
+        if isinstance(other, ConfigNode):
+            return self.to_dict() == other.to_dict()
+        else:
+            return False
 
     def __getstate__(self):
         """
