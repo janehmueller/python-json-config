@@ -183,3 +183,11 @@ def test_merge_env_variable():
 
     for key, value in variables.items():
         del os.environ[key]
+
+
+def test_build_from_serialized_config(path):
+    builder = ConfigBuilder()
+    config = builder.parse_config(path)
+
+    assert config == builder.parse_config(config.to_dict())
+    assert config == builder.parse_config(config.to_json())
