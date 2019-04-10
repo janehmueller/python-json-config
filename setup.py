@@ -23,7 +23,8 @@ VERSION = None
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    "jsonschema"
+    "jsonschema",
+    "msgpack"
 ]
 
 # What packages are optional?
