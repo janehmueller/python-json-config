@@ -44,10 +44,3 @@ def test_iteration(config_dict):
         assert item_key == key
         assert item_value == value
         assert config.get(key) == value
-
-
-def test_to_dict(config_dict):
-    config = ConfigNode(config_dict)
-    assert config.to_dict() == config_dict
-    assert config.key2.to_dict() == config_dict["key2"]
-    assert config.key2.key4.to_dict() == config_dict["key2"]["key4"]
