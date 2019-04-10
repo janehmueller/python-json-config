@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from typing import Dict, Union, List
 
 import jsonschema
@@ -42,7 +43,7 @@ class ConfigBuilder(object):
             if value is None:
                 continue
             assert isinstance(value, field_type), f'Config field "{field_name}" with value "{value}" is not of ' \
-                f'type {field_type}'
+                f"type {field_type}"
 
     def validate_field_value(self, field_name: str, validation_function):
         """
@@ -181,6 +182,13 @@ class ConfigBuilder(object):
         self.__environment_variable_prefixes += prefixes
         return self
 
+    def __parse_json(self, json_data: str):
+        return json.loads(json_data)
+
+    def __parse_json_file(self, json_file: str):
+        with open(json_file, "r") as file:
+            return json.load(file)
+
     def parse_config(self, config: Union[str, dict]) -> Config:
         """
         Build the config. This method should be called last and uses the settings set via the other methods of this
@@ -191,9 +199,10 @@ class ConfigBuilder(object):
         # Either parse the JSON file or use the passed dictionary directly
         if isinstance(config, dict):
             config_dict = config
+        elif Path(config).exists():
+            config_dict = self.__parse_json_file(config)
         else:
-            with open(config, "r") as json_file:
-                config_dict = json.load(json_file)
+            config_dict = self.__parse_json(config)
 
         # Validate with JSON schema if it exists
         if self.__json_schema is not None:

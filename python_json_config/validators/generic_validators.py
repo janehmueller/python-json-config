@@ -14,7 +14,7 @@ def is_timedelta(value: str) -> Union[bool, Tuple[bool, str]]:
     :param value: The timedelta as string.
     :return: True if the value is a valid timedelta specification otherwise False.
     """
-    split_values = value.split(':')
+    split_values = value.split(":")
     if len(split_values) > 5:
         return False, "Timedelta contains more than 5 elements."
 
