@@ -18,6 +18,7 @@ def test_to_dict(config_dict):
     assert config.to_dict() == config_dict
     assert config.key2.to_dict() == config_dict["key2"]
     assert config.key2.key4.to_dict() == config_dict["key2"]["key4"]
+    assert ConfigNode(config.to_dict()) == config
 
 
 def test_to_json(config_dict):
@@ -37,8 +38,7 @@ def test_to_json_complex_types(config_dict):
 
 def test_to_msgpack(config_dict):
     config = ConfigNode(config_dict)
-    serialized = config.to_msgpack()
-    deserialized_dict = msgpack.loads(serialized, raw=False)
+    deserialized_dict = msgpack.loads(config.to_msgpack(), raw=False)
     assert deserialized_dict == config.to_dict()
 
 
@@ -54,8 +54,7 @@ def test_to_msgpack_complex_type():
         "key1": datetime.timedelta(seconds=1, minutes=2),
         "key2": datetime.datetime(day=1, year=2000, month=4)
     })
-    serialized = config.to_msgpack()
-    deserialized_dict = msgpack.loads(serialized, raw=False)
+    deserialized_dict = msgpack.loads(config.to_msgpack(), raw=False)
     assert deserialized_dict == {"key1": "0:02:01", "key2": "2000-04-01 00:00:00"}
 
 
@@ -64,6 +63,5 @@ def test_from_msgpack_complex_type():
         "key1": datetime.timedelta(seconds=1, minutes=2),
         "key2": datetime.datetime(day=1, year=2000, month=4)
     })
-    serialized = config.to_msgpack()
-    deserialized_config = ConfigNode.from_msgpack(serialized)
+    deserialized_config = ConfigNode.from_msgpack(config.to_msgpack())
     assert deserialized_config == ConfigNode({"key1": "0:02:01", "key2": "2000-04-01 00:00:00"})
