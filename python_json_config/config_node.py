@@ -1,3 +1,4 @@
+import json
 import os
 import warnings
 from typing import List, Union, Tuple
@@ -168,7 +169,10 @@ class ConfigNode(object):
             else:
                 yield self.__path_for_key(key), value
 
-    def to_dict(self):
+    """
+    Serialization functions
+    """
+    def to_dict(self) -> dict:
         config_dict = {}
         for key, value in self.__node_dict.items():
             if isinstance(value, ConfigNode):
@@ -176,6 +180,9 @@ class ConfigNode(object):
             else:
                 config_dict[key] = value
         return config_dict
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict())
 
     """
     Built-in python functions
@@ -213,8 +220,8 @@ class ConfigNode(object):
             return False
 
     def __str__(self):
-        return f'ConfigNode(path={self.__path}, values={self.__node_dict}, strict_access={self.strict_access}, ' \
-               f'required_fields={self.required_fields}, optional_fields={self.optional_fields})'
+        return f"ConfigNode(path={self.__path}, values={self.__node_dict}, strict_access={self.strict_access}, " \
+               f"required_fields={self.required_fields}, optional_fields={self.optional_fields})"
 
     __repr__ = __str__
 
@@ -238,7 +245,7 @@ class ConfigNode(object):
         return ".".join(self.__path)
 
     def __path_for_key(self, key: str):
-        print_path = self.__path_str + '.' * bool(self.__path)
+        print_path = self.__path_str + "." * bool(self.__path)
         return print_path + key
 
     def __parse_field_settings(self, field_names: List[Union[str, List[str]]]) -> Tuple[List[str], List[List[str]]]:
