@@ -9,78 +9,78 @@ from python_json_config import ConfigBuilder
 
 @pytest.fixture
 def path() -> str:
-    return 'tests/resources/test_config.json'
+    return "tests/resources/test_config.json"
 
 
 @pytest.fixture
 def schema_path() -> str:
-    return 'tests/resources/test_config.schema.json'
+    return "tests/resources/test_config.schema.json"
 
 
 def test_parse(path):
     config = ConfigBuilder()\
-        .validate_field_type('server.port', int)\
-        .validate_field_value('server.debug_mode', lambda x: not x)\
-        .transform_field_value('server.port', lambda x: str(x))\
+        .validate_field_type("server.port", int)\
+        .validate_field_value("server.debug_mode", lambda x: not x)\
+        .transform_field_value("server.port", lambda x: str(x))\
         .parse_config(path)
     assert config is not None
     assert not config.server.debug_mode
-    assert config.server.port == '5000'
+    assert config.server.port == "5000"
 
 
 def test_type_validation_builder():
     builder = ConfigBuilder()
-    builder.validate_field_type('key1', int)
-    builder.validate_field_type('key1.key2', list)
+    builder.validate_field_type("key1", int)
+    builder.validate_field_type("key1.key2", list)
     type_validation_dict = builder._ConfigBuilder__validation_types
-    assert type_validation_dict['key1'] == int
-    assert type_validation_dict['key1.key2'] == list
+    assert type_validation_dict["key1"] == int
+    assert type_validation_dict["key1.key2"] == list
 
 
 def test_value_validation_builder():
     builder = ConfigBuilder()
-    builder.validate_field_value('key1', lambda x: x < 4)
-    builder.validate_field_value('key1.key2', lambda x: len(x) == 3)
+    builder.validate_field_value("key1", lambda x: x < 4)
+    builder.validate_field_value("key1.key2", lambda x: len(x) == 3)
     value_validation_dict = builder._ConfigBuilder__validation_functions
-    assert value_validation_dict['key1'][0](1)
-    assert not value_validation_dict['key1'][0](4)
-    assert value_validation_dict['key1.key2'][0]([1, 2, 3])
-    assert not value_validation_dict['key1.key2'][0](['a', 'b'])
+    assert value_validation_dict["key1"][0](1)
+    assert not value_validation_dict["key1"][0](4)
+    assert value_validation_dict["key1.key2"][0]([1, 2, 3])
+    assert not value_validation_dict["key1.key2"][0](["a", "b"])
 
 
 def test_value_transformation_builder():
     builder = ConfigBuilder()
-    builder.transform_field_value('key1', lambda x: x * 4)
-    builder.transform_field_value('key1.key2', lambda x: [x[len(x) - 1 - i] for i in range(len(x))])
+    builder.transform_field_value("key1", lambda x: x * 4)
+    builder.transform_field_value("key1.key2", lambda x: [x[len(x) - 1 - i] for i in range(len(x))])
     value_transformation_dict = builder._ConfigBuilder__transformation_functions
-    assert value_transformation_dict['key1'](1) == 4
-    assert value_transformation_dict['key1'](4) == 16
-    assert value_transformation_dict['key1.key2']([1 == 2, 3]), [3, 2, 1]
-    assert value_transformation_dict['key1.key2'](['a' == 'b', False]), [False, 'b', 'a']
+    assert value_transformation_dict["key1"](1) == 4
+    assert value_transformation_dict["key1"](4) == 16
+    assert value_transformation_dict["key1.key2"]([1 == 2, 3]), [3, 2, 1]
+    assert value_transformation_dict["key1.key2"](["a" == "b", False]), [False, "b", "a"]
 
 
 def test_type_validation(path):
     builder = ConfigBuilder()
-    builder.validate_field_type('server.debug_mode', bool)
-    builder.validate_field_type('server.port', int)
+    builder.validate_field_type("server.debug_mode", bool)
+    builder.validate_field_type("server.port", int)
     builder.parse_config(path)
-    builder.validate_field_type('server.host', int)
+    builder.validate_field_type("server.host", int)
     with pytest.raises(AssertionError):
         builder.parse_config(path)
 
 
 def test_value_validation(path):
     builder = ConfigBuilder()
-    builder.validate_field_value('server.debug_mode', lambda x: not x)
-    builder.validate_field_value('server.port', [lambda x: x < 10000, lambda x: x > 1023])
+    builder.validate_field_value("server.debug_mode", lambda x: not x)
+    builder.validate_field_value("server.port", [lambda x: x < 10000, lambda x: x > 1023])
     builder.parse_config(path)
 
-    builder.validate_field_value('server.port', lambda x: x > 6000)
+    builder.validate_field_value("server.port", lambda x: x > 6000)
     with pytest.raises(AssertionError):
         builder.parse_config(path)
 
     builder = ConfigBuilder()
-    builder = builder.validate_field_value('cache.ttl', lambda x: x > 200)
+    builder = builder.validate_field_value("cache.ttl", lambda x: x > 200)
     with pytest.raises(AssertionError):
         builder.parse_config(path)
 
@@ -91,8 +91,8 @@ def test_value_transformation(path):
     assert not config.server.debug_mode
     assert config.server.port == 5000
 
-    builder.transform_field_value('server.debug_mode', lambda x: not x)
-    builder.transform_field_value('server.port', lambda x: x + 4)
+    builder.transform_field_value("server.debug_mode", lambda x: not x)
+    builder.transform_field_value("server.port", lambda x: x + 4)
     config = builder.parse_config(path)
     assert config.server.debug_mode
     assert config.server.port == 5004
@@ -100,8 +100,8 @@ def test_value_transformation(path):
 
 def test_value_validation_error_messages(path):
     builder = ConfigBuilder()
-    custom_message = 'test error'
-    builder.validate_field_value('server.debug_mode', lambda x: (x, custom_message))
+    custom_message = "test error"
+    builder.validate_field_value("server.debug_mode", lambda x: (x, custom_message))
     expected_message = f'Error validating field "server.debug_mode" with value "False": {custom_message}'
     with pytest.raises(AssertionError, match=expected_message):
         builder.parse_config(path)
@@ -125,8 +125,8 @@ def test_json_schema_validation(path, schema_path):
 def test_optional_access(path):
     builder = ConfigBuilder()
     builder.set_field_access_optional()
-    builder.add_required_field('server.nokey')
-    builder.add_required_fields(['cache.name', 'test'])
+    builder.add_required_field("server.nokey")
+    builder.add_required_fields(["cache.name", "test"])
     config = builder.parse_config(path)
 
     assert config.nokey is None
@@ -143,8 +143,8 @@ def test_optional_access(path):
 def test_required_access(path):
     builder = ConfigBuilder()
     builder.set_field_access_required()
-    builder.add_optional_field('server.nokey')
-    builder.add_optional_fields(['cache.name', 'test'])
+    builder.add_optional_field("server.nokey")
+    builder.add_optional_fields(["cache.name", "test"])
     config = builder.parse_config(path)
 
     assert config.test is None
@@ -161,9 +161,9 @@ def test_required_access(path):
 def test_optional_validation(path):
     builder = ConfigBuilder()
     builder.set_field_access_optional()
-    builder.validate_field_type('cache.name', str)
-    builder.validate_field_value('cache.host', 'localhost')
-    builder.transform_field_value('cache.host', lambda name: f"https://{name}")
+    builder.validate_field_type("cache.name", str)
+    builder.validate_field_value("cache.host", "localhost")
+    builder.transform_field_value("cache.host", lambda name: f"https://{name}")
     builder.parse_config(path)
 
 

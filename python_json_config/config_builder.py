@@ -42,7 +42,7 @@ class ConfigBuilder(object):
             if value is None:
                 continue
             assert isinstance(value, field_type), f'Config field "{field_name}" with value "{value}" is not of ' \
-                f'type {field_type}'
+                f"type {field_type}"
 
     def validate_field_value(self, field_name: str, validation_function):
         """
