@@ -15,7 +15,7 @@ def to_timedelta(value: str):
     :param value: The timedelta as string.
     :return: A timedelta value representing the timespan that is specified.
     """
-    split_values = value.split(':')
+    split_values = value.split(":")
 
     try:
         int_values = [int(element) for element in split_values]
