@@ -122,12 +122,16 @@ def test_merge_env_variable():
     for key, value in variables.items():
         os.environ[key] = value
 
+    invalid_prefix = "PYTHONJSONCONFIGTEST"
+    os.environ[invalid_prefix] = "invalid"
+
     config = ConfigNode({"testvalue1": "blub", "testvalue3": 5})
     config.merge_with_env_variables(prefix)
 
     assert config.testvalue1 == "bla"
     assert config.testvalue2 == "1"
     assert config.testvalue3 == 5
+    assert "test" not in config
 
     for key, value in variables.items():
         del os.environ[key]
