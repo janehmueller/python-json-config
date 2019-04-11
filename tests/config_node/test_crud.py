@@ -81,7 +81,7 @@ def test_update(config_dict):
     assert node.key2.key4 == 1337
 
 
-def test_update_upsert():
+def test_upsert():
     node = ConfigNode({"key1": 1})
 
     with pytest.raises(AttributeError):
@@ -92,6 +92,26 @@ def test_update_upsert():
 
     node.update("key2", "asd", upsert=True)
     assert node.key2 == "asd"
+
+
+def test_nested_update():
+    node = ConfigNode({"key1": 1})
+
+    with pytest.raises(AttributeError):
+        node.key2
+
+    with pytest.raises(RuntimeError):
+        node.update("key2.key3", "asd", upsert=False)
+
+
+def test_nested_upsert():
+    node = ConfigNode({"key1": 1})
+
+    with pytest.raises(AttributeError):
+        node.key2
+
+    node.update("key2.key3", "asd", upsert=True)
+    assert node.key2.key3 == "asd"
 
 
 def test_strict_access(config_dict):
@@ -122,12 +142,16 @@ def test_merge_env_variable():
     for key, value in variables.items():
         os.environ[key] = value
 
+    invalid_prefix = "PYTHONJSONCONFIGTEST"
+    os.environ[invalid_prefix] = "invalid"
+
     config = ConfigNode({"testvalue1": "blub", "testvalue3": 5})
     config.merge_with_env_variables(prefix)
 
     assert config.testvalue1 == "bla"
     assert config.testvalue2 == "1"
     assert config.testvalue3 == 5
+    assert "test" not in config
 
     for key, value in variables.items():
         del os.environ[key]
