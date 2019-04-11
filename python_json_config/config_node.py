@@ -139,11 +139,9 @@ class ConfigNode(object):
         prefixes = [prefix] if isinstance(prefix, str) else prefix
         for key in os.environ:
             for prefix in prefixes:
-                if key.startswith(prefix):
+                if key.startswith(f"{prefix}_"):
                     value = os.environ[key]
-                    cleaned_key = key[len(prefix):]
-                    if cleaned_key[0] == "_":
-                        cleaned_key = cleaned_key[1:]
+                    cleaned_key = key[len(prefix) + 1:]
                     cleaned_key = cleaned_key.lower().split("_")
                     self.update(path=cleaned_key, value=value, upsert=True)
 
