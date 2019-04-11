@@ -126,6 +126,11 @@ class ConfigNode(object):
             else:
                 self.__node_dict[key] = value
         else:
+            if key not in self.__node_dict and upsert:
+                self.__node_dict[key] = ConfigNode({}, path=self.__path + [key])
+            elif key not in self.__node_dict:
+                raise RuntimeError(f"Updating not existing key {self.__path_for_key(key)}. To insert non existing keys"
+                                   f"set upsert=True.")
             self.get(key).update(path=path[1:], value=value, upsert=upsert)
 
     def merge_with_env_variables(self, prefix: Union[str, List[str]]):
