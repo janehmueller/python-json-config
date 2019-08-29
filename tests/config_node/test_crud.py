@@ -136,6 +136,16 @@ def test_strict_access(config_dict):
         assert config.key2.nokey2 is None
 
 
+def test_access_options_in_new_nodes(config_dict):
+    config = ConfigNode(config_dict, strict_access=False)
+    assert config.key1 == 1
+    assert config.key10 is None
+
+    config.update("key10.key11", "testme", upsert=True)
+    assert config.key10.key11 == "testme"
+    assert config.key10.key12 is None
+
+
 def test_merge_env_variable():
     prefix = "PYTHONJSONCONFIG"
     variables = {f"{prefix}_TESTVALUE1": "bla", f"{prefix}_TESTVALUE2": "1"}

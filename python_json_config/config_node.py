@@ -122,12 +122,12 @@ class ConfigNode(object):
                 raise RuntimeError(f"Updating not existing key {self.__path_for_key(key)}. To insert non existing keys"
                                    f"set upsert=True.")
             if isinstance(value, dict):
-                self.__node_dict[key] = ConfigNode(value, path=self.__path + [key])
+                self.__node_dict[key] = ConfigNode(value, path=self.__path + [key], strict_access=self.strict_access)
             else:
                 self.__node_dict[key] = value
         else:
             if key not in self.__node_dict and upsert:
-                self.__node_dict[key] = ConfigNode({}, path=self.__path + [key])
+                self.__node_dict[key] = ConfigNode({}, path=self.__path + [key], strict_access=self.strict_access)
             elif key not in self.__node_dict:
                 raise RuntimeError(f"Updating not existing key {self.__path_for_key(key)}. To insert non existing keys"
                                    f"set upsert=True.")
