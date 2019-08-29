@@ -136,6 +136,16 @@ def test_strict_access(config_dict):
         assert config.key2.nokey2 is None
 
 
+def test_access_options_in_new_nodes(config_dict):
+    config = ConfigNode(config_dict, strict_access=False)
+    assert config.key1 == 1
+    assert config.key10 is None
+
+    config.update("key10.key11", "testme", upsert=True)
+    assert config.key10.key11 == "testme"
+    assert config.key10.key12 is None
+
+
 def test_merge_env_variable():
     prefix = "PYTHONJSONCONFIG"
     variables = {f"{prefix}_TESTVALUE1": "bla", f"{prefix}_TESTVALUE2": "1"}
@@ -152,6 +162,31 @@ def test_merge_env_variable():
     assert config.testvalue2 == "1"
     assert config.testvalue3 == 5
     assert "test" not in config
+
+    for key, value in variables.items():
+        del os.environ[key]
+
+
+def test_merge_env_variable_underscore_name():
+    prefix = "PYTHONJSONCONFIG"
+    variables = {
+        f"{prefix}_TEST__VALUE1": "bla",
+        f"{prefix}_TEST_VALUE2": "1",
+        f"{prefix}_TEST_TEST2__VALUES_VALUE2": "3"
+    }
+    for key, value in variables.items():
+        os.environ[key] = value
+
+    config = ConfigNode({"test_value1": "blub",
+                         "test": {
+                             "value2": "5",
+                             "test2_values": {"value2": 1}
+                         }})
+    config.merge_with_env_variables(prefix)
+
+    assert config.test_value1 == "bla"
+    assert config.test.value2 == "1"
+    assert config.test.test2_values.value2 == "3"
 
     for key, value in variables.items():
         del os.environ[key]

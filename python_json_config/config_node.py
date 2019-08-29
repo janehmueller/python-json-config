@@ -5,7 +5,7 @@ from typing import List, Union, Tuple
 
 import msgpack
 
-from .utils import normalize_path
+from .utils import normalize_path, parse_env_variable_name
 
 
 class ConfigNode(object):
@@ -20,7 +20,7 @@ class ConfigNode(object):
         :param config_dict: Source dictionary containing the part of the config that will be in this node and its
                             children. Each dictionary value in this dictionary will become another ConfigNode that is
                             a child of this node.
-        :param path: The access path to this node, i.e. the config keys that are used to access thos node.
+        :param path: The access path to this node, i.e. the config keys that are used to access this node.
         :param strict_access: If True, an error will be thrown if a non-existing field is accessed. If False,
                                     None will be returned instead.
         :param required_fields: A list of field names, for which an error will be thrown if they are accessed but don't
@@ -122,12 +122,12 @@ class ConfigNode(object):
                 raise RuntimeError(f"Updating not existing key {self.__path_for_key(key)}. To insert non existing keys"
                                    f"set upsert=True.")
             if isinstance(value, dict):
-                self.__node_dict[key] = ConfigNode(value, path=self.__path + [key])
+                self.__node_dict[key] = ConfigNode(value, path=self.__path + [key], strict_access=self.strict_access)
             else:
                 self.__node_dict[key] = value
         else:
             if key not in self.__node_dict and upsert:
-                self.__node_dict[key] = ConfigNode({}, path=self.__path + [key])
+                self.__node_dict[key] = ConfigNode({}, path=self.__path + [key], strict_access=self.strict_access)
             elif key not in self.__node_dict:
                 raise RuntimeError(f"Updating not existing key {self.__path_for_key(key)}. To insert non existing keys"
                                    f"set upsert=True.")
@@ -146,8 +146,7 @@ class ConfigNode(object):
             for prefix in prefixes:
                 if key.startswith(f"{prefix}_"):
                     value = os.environ[key]
-                    cleaned_key = key[len(prefix) + 1:]
-                    cleaned_key = cleaned_key.lower().split("_")
+                    cleaned_key = parse_env_variable_name(key[len(prefix) + 1:])
                     self.update(path=cleaned_key, value=value, upsert=True)
 
     """
