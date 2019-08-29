@@ -165,3 +165,28 @@ def test_merge_env_variable():
 
     for key, value in variables.items():
         del os.environ[key]
+
+
+def test_merge_env_variable_underscore_name():
+    prefix = "PYTHONJSONCONFIG"
+    variables = {
+        f"{prefix}_TEST__VALUE1": "bla",
+        f"{prefix}_TEST_VALUE2": "1",
+        f"{prefix}_TEST_TEST2__VALUES_VALUE2": "3"
+    }
+    for key, value in variables.items():
+        os.environ[key] = value
+
+    config = ConfigNode({"test_value1": "blub",
+                         "test": {
+                             "value2": "5",
+                             "test2_values": {"value2": 1}
+                         }})
+    config.merge_with_env_variables(prefix)
+
+    assert config.test_value1 == "bla"
+    assert config.test.value2 == "1"
+    assert config.test.test2_values.value2 == "3"
+
+    for key, value in variables.items():
+        del os.environ[key]
