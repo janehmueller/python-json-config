@@ -120,6 +120,10 @@ $ MYPROJECT_SERVER_HOST="localhost"
 $ MYPROJECT_CACHE="redis"
 $ MYPYTHONPROJECTS_USER="user"
 ```
+Escape underscores in names of variables with another underscore:
+```
+$ MYPYTHONPROJECTS_LOG__FILE="project.log"
+```
 Then just tell the builder, which prefixes should be merged:
 ```
 builder = ConfigBuilder()
@@ -130,6 +134,7 @@ config = builder.parse_config({"server.host": "0.0.0.0"})
 assert config.server.host == "localhost"
 assert config.cache == "redis"
 assert config.user == "user"
+assert config.log_file == "project.log"
 ```
 Alternatively you can also do the merging after creating the config object:
 ```
