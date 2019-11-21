@@ -16,7 +16,7 @@ def parse_env_variable_name(variable: str) -> List[str]:
     :return: the path extracted from the name of the environment variable
     """
     # Split only on single underscores
-    split_variable = re.split("([^_]+)_([^_]+)", variable.lower())
+    split_variable = re.sub(r"([^_])[_]([^_])", r"\1 \2", variable.lower()).split(" ")
     path = [element for element in split_variable if element]
 
     # If the path contains single elements only consisting of underscores, join the previous and next element together.
